@@ -1,3 +1,4 @@
+// Importing necessary modules
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const {getStorage} = require("firebase-admin/storage");
@@ -13,17 +14,20 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
+// Initialize Firebase Admin SDK
 admin.initializeApp();
 const db = admin.firestore();
 const storage = new Storage();
 
-// Initialize function
+// Function to initialize and authenticate Google services
 async function initialize() {
   try {
-    const [geminiVersion] = await client.accessSecretVersion({ name: 'projects/175255734031/secrets/GEMINI_API_KEY/versions/latest' });
+    // Access secret version from Google Cloud Secret Manager
+    const [geminiVersion] = await client.accessSecretVersion({ name: 'YOUR_GOOGLE_CLOUD_SECRET_MANAGER_PATH_FOR_GEMINI_API_KEY' });
     const geminiApiKey = geminiVersion.payload.data.toString();
     const genAI = new GoogleGenerativeAI(geminiApiKey);
 
+    // Return initialized services
     return {
       genAI,
       db,
@@ -35,16 +39,20 @@ async function initialize() {
   }
 }
 
+// Function to get SDGs from Firestore
 async function getSDGs() {
   try {
-    const sdgsRef = db.collection('sdg'); // Reference to your 'sdgs' collection
+    // Reference to the 'sdg' collection in Firestore
+    const sdgsRef = db.collection('sdg');
     const snapshot = await sdgsRef.orderBy('index').get();
 
+    // If no SDGs found, return an empty array
     if (snapshot.empty) {
       console.log('No SDGs found.');
       return [];
     }
 
+    // Map the documents to an array of SDGs
     const sdgsArray = snapshot.docs.map(doc => {
       const data = doc.data();
       return `SDG ${data.index}: ${data.goal}`;
@@ -57,13 +65,14 @@ async function getSDGs() {
   }
 }
 
-
-
+// Cloud function to generate challenges based on SDGs
 exports.generateChallenges = functions.https.onRequest(async (req, res) => {
   try {
+    // Initialize Google services and Firestore
     const { genAI, db } = await initialize();
     const translate = new Translate();
 
+    // Configuration for content generation
     const generationConfigForChallenges = {
       temperature: 1,
       topP: 0.95,
@@ -72,17 +81,20 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
       responseMimeType: "application/json",
     };
 
+    // Initialize generative AI model
     const modelForChallenges = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: "Easy to understand. Be positive, no hatred.",
       generationConfig: generationConfigForChallenges,
     });
 
+    // Fetch SDGs from Firestore
     const sdgs = await getSDGs();
 
     const languages = ["en", "hi", "ru", "fr", "zh", "es", "ar"]; // Add more languages as needed
 
     for (const sdg of sdgs) {
+      // Get the last 5 challenges for the specific SDG
       const previousChallengesSnapshot = await db.collection('challenges')
         .where('sdg', '==', sdg)
         .orderBy('startDate', 'desc')
@@ -91,6 +103,7 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
 
       const previousChallenges = previousChallengesSnapshot.docs.map(doc => doc.data());
 
+      // Prompt for generating a new challenge
       const prompt = `Generate a weekly challenge related to SDG "${sdg}" that users can complete at home.
       Here are the previous challenges: ${JSON.stringify(previousChallenges)}. Try not to repeat the previous challenges.
       The challenge should include title, description, evaluation criteria and points system.
@@ -113,18 +126,22 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
       }
       `;
 
+      // Generate the challenge content using AI
       const result = await modelForChallenges.generateContent([{ text: prompt }]);
       const response = result.response;
       const ans = await response.text();
 
+      // Parse the generated JSON response
       const challenge = JSON.parse(ans);
 
+      // Calculate start and end dates for the challenge
       const today = new Date();
       const startDate = today.toISOString().split('T')[0];
       const nextWeek = new Date();
       nextWeek.setDate(today.getDate() + 7);
       const endDate = nextWeek.toISOString().split('T')[0];
 
+      // Prepare translations object
       const translations = {
         title: { en: challenge.title },
         description: { en: challenge.description },
@@ -134,6 +151,7 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
         })),
       };
 
+      // Translate the challenge content into other languages
       for (const language of languages) {
         if (language === 'en') continue;
 
@@ -149,6 +167,7 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
         translations.description[language] = translatedDescription;
       }
 
+      // Store the generated challenge in Firestore
       await db.collection('challenges').add({
         sdg,
         title: translations.title,
@@ -167,12 +186,14 @@ exports.generateChallenges = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Function to generate summary
+// Cloud function to generate a motivational summary related to SDGs
 exports.generateSummary = functions.https.onRequest(async (req, res) => {
   try {
+    // Initialize Google services and Firestore
     const { genAI, db, storage } = await initialize();
     const translate = new Translate();
 
+    // Configuration for content generation
     const generationConfig = {
       temperature: 1,
       topP: 0.95,
@@ -181,6 +202,7 @@ exports.generateSummary = functions.https.onRequest(async (req, res) => {
       responseMimeType: "text/plain",
     };
 
+    // Initialize generative AI model
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash",
       systemInstruction: "Easy to understand. Be positive, no hatred. Empathize and motivate.",
@@ -204,6 +226,7 @@ exports.generateSummary = functions.https.onRequest(async (req, res) => {
     currentDate.setDate(currentDate.getDate() + 1);
     const formattedDate = currentDate.toISOString().split('T')[0];
 
+    // Generate the summary content using AI
     const result = await model.generateContent([
       {
         text: `Please generate a motivational and positive content piece about one of the 17 SDGs. Avoid any negative or hateful language. The tone should be warm, encouraging, and empowering. Aim for a length of about 1,000 to 1,500 words.`
@@ -250,43 +273,50 @@ exports.generateSummary = functions.https.onRequest(async (req, res) => {
 });
 
 
-// Evaluate user submissions
+// Cloud Function to evaluate user submissions when a new document is created in 'challenge_entries'
 exports.evaluateSubmission = functions.firestore.document('challenge_entries/{entryId}')
   .onCreate(async (snap, context) => {
     try {
+      // Initialize the Google services (Generative AI, Firestore, and Storage)
       const { genAI, db, storage } = await initialize();
 
+      // Configuration for content generation with the AI model
       const generationConfigForEvaluation = {
-        temperature: 1,
-        topP: 0.95,
-        topK: 64,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json",
+        temperature: 1, 
+        topP: 0.95,     
+        topK: 64,       
+        maxOutputTokens: 8192, 
+        responseMimeType: "application/json", 
       };
 
+      // Initialize the Generative AI model for evaluation
       const modelForEvaluation = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: "Easy to understand.",
+        model: "gemini-1.5-flash", // Model name/version
+        systemInstruction: "Easy to understand.", // Instruction to keep output simple and clear
         generationConfig: generationConfigForEvaluation,
       });
 
+      // Extract data from the newly created entry document
       const entry = snap.data();
       const challengeId = entry.challenge_id;
       const entryDescription = entry.entry_description;
       const photoUrls = entry.photo_urls;
-      const localLanguage = entry.localLanguage;
-      const localLanguageCode = entry.localLanguageCode;
+      const localLanguage = entry.localLanguage; // User's local language for summary
+      const localLanguageCode = entry.localLanguageCode; // Language code for translation
 
+      // Fetch the challenge details from Firestore using the challenge ID
       const challengeDoc = await db.collection('challenges').doc(challengeId).get();
       if (!challengeDoc.exists) {
-        throw new Error('Challenge not found');
+        throw new Error('Challenge not found'); // Throw an error if challenge does not exist
       }
       const challenge = challengeDoc.data();
-      // Get English content
+
+      // Extract English content for the challenge (title, description, and evaluation criteria)
       const englishTitle = challenge.title['en'];
       const englishDescription = challenge.description['en'];
       const englishEvaluationCriteria = challenge.evaluationCriteria;
 
+      // Construct a prompt to guide the AI in evaluating the submission
       let prompt = `Evaluate the following user submission based on the challenge details:
       Challenge Title: ${englishTitle}
       Description: ${englishDescription}`;
@@ -298,12 +328,14 @@ exports.evaluateSubmission = functions.firestore.document('challenge_entries/{en
       1. Verify Relevance: Carefully check if the attached images are relevant to the challenge description and user entry. The images should clearly relate to challenge description and user entry.
       2. Evaluate Each Criterion: \n`;
 
+      // Append each evaluation criterion to the prompt
       englishEvaluationCriteria.forEach((criteria, index) => {
         prompt += `(${index + 1}) ${criteria.criteria.en}: max ${criteria.maxPoints} points\n`;
       });
 
-      prompt += `\n 3. Provide Scores: Assign scores for each above mentioned criterion based on the relevance and quality of the submission. Be strict in assigning scores.
-                 4. Total Score and Summary: Calculate the total score by summing up the individual scores for above mentioned criterion. Write a short evaluation summary highlighting the strengths and weaknesses of the submission, especially in relation to the images provided. Be polite and encouraging in summary.
+      // Append final instructions to provide scores and generate a summary in the user's local language
+      prompt += `\n3. Provide Scores: Assign scores for each above-mentioned criterion based on the relevance and quality of the submission. Be strict in assigning scores.
+                 4. Total Score and Summary: Calculate the total score by summing up the individual scores for above-mentioned criteria. Write a short evaluation summary highlighting the strengths and weaknesses of the submission, especially in relation to the images provided. Be polite and encouraging in the summary.
                  The JSON output must be as follows:
                  {
                  "scores": [
@@ -324,40 +356,42 @@ exports.evaluateSubmission = functions.firestore.document('challenge_entries/{en
                  Give summary in ${localLanguage} only.
       `;
 
-      // Log the prompt to the console
-      console.log('Generated Prompt:', prompt);
+      // console.log('Generated Prompt:', prompt);
 
+      // Process each photo URL by downloading the image and converting it to a format suitable for the AI model
       const imageParts = [];
       for (let i = 0; i < photoUrls.length; i++) {
         const imagePath = await downloadImage(photoUrls[i]);
-        imageParts.push(fileToGenerativePart(imagePath, "image/jpeg"));
+        imageParts.push(fileToGenerativePart(imagePath, "image/jpeg")); // Convert image to Generative Part format
       }
 
+      // Generate the evaluation content by passing the prompt and image parts to the AI model
       const result = await modelForEvaluation.generateContent([prompt, ...imageParts]);
       const evaluationResponse = await result.response.text();
-      const evaluation = JSON.parse(evaluationResponse);
+      const evaluation = JSON.parse(evaluationResponse); // Parse the AI response as JSON
 
-      console.log('Generated evaluation:', evaluation);
+      // Log the generated evaluation for debugging
+      // console.log('Generated evaluation:', evaluation);
 
-//      if (!evaluation.scores || !evaluation.totalScore || !evaluation.summary) {
-//        throw new Error('Evaluation response is incomplete', evaluation);
-//      }
-try{
-      await snap.ref.update({
-        scores: evaluation.scores,
-        totalScore: evaluation.totalScore,
-        summary: evaluation.summary,
-        evaluatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+      try {
+        // Update the original entry document with the evaluation results (scores, total score, summary, and timestamp)
+        await snap.ref.update({
+          scores: evaluation.scores,
+          totalScore: evaluation.totalScore,
+          summary: evaluation.summary,
+          evaluatedAt: admin.firestore.FieldValue.serverTimestamp() // Timestamp of evaluation
+        });
 
-      console.log('Submission evaluated successfully');
-      }catch (e){
-      console.error(e);
+        console.log('Submission evaluated successfully'); // Log success message
+      } catch (e) {
+        console.error(e); // Log any error that occurs during the update
       }
     } catch (error) {
+      // Handle any errors that occur during the evaluation process
       console.error('Error evaluating submission:', error);
     }
   });
+
 
 
 // Converts local file information to a GoogleGenerativeAI.Part object.
@@ -370,81 +404,135 @@ function fileToGenerativePart(path, mimeType) {
   };
 }
 
+// Function to download an image from a given URL and save it to the local filesystem
 async function downloadImage(url) {
-try{
-const fileName = url.split('/').pop().split('?')[0]; // Extract file name from URL
-      //const destFileName = path.join(__dirname, 'tmp', fileName);
-      const destFileName = path.join('/tmp', fileName);
-      console.log(`Downloading from URL ${url} to ${destFileName}`);
-      // Create the tmp directory if it doesn't exist
-      if (!fs.existsSync(path.dirname(destFileName))) {
-        fs.mkdirSync(path.dirname(destFileName));
-      }
-      const response = await axios({
-        url,
-        method: 'GET',
-        responseType: 'stream'
-      });
-      response.data.pipe(fs.createWriteStream(destFileName));
-      return new Promise((resolve, reject) => {
-        response.data.on('end', () => {
-          console.log('Download successful:', destFileName);
-          resolve(destFileName);
-        });
-        response.data.on('error', err => {
-          console.error('Error downloading image:', err);
-          reject(err);
-        });
-      });
-    } catch (error) {
-      console.error('Error downloading image:', error);
-      throw error;
+  try {
+    // Extract the file name from the URL (removing any query parameters)
+    const fileName = url.split('/').pop().split('?')[0];
+    // Determine the destination file path where the image will be saved
+    const destFileName = path.join('/tmp', fileName);
+
+    console.log(`Downloading from URL ${url} to ${destFileName}`);
+
+    // Check if the directory exists; if not, create it
+    if (!fs.existsSync(path.dirname(destFileName))) {
+      fs.mkdirSync(path.dirname(destFileName)); // Create the directory
     }
+
+    // Make an HTTP GET request to download the image
+    const response = await axios({
+      url, // The image URL
+      method: 'GET', // HTTP method
+      responseType: 'stream' // Stream the response data directly to a file
+    });
+
+    // Pipe the response data (image stream) to a file on the local filesystem
+    response.data.pipe(fs.createWriteStream(destFileName));
+
+    // Return a promise that resolves when the download is complete, or rejects if there's an error
+    return new Promise((resolve, reject) => {
+      // When the stream ends, resolve the promise with the destination file path
+      response.data.on('end', () => {
+        console.log('Download successful:', destFileName);
+        resolve(destFileName);
+      });
+      // If there's an error during the download, reject the promise with the error
+      response.data.on('error', err => {
+        console.error('Error downloading image:', err);
+        reject(err);
+      });
+    });
+
+  } catch (error) {
+    // Log and re-throw any errors that occur during the download process
+    console.error('Error downloading image:', error);
+    throw error;
+  }
 }
 
 
-//async function translateDocuments() {
+// Cloud Function to translate documents in Firestore and update them with translations
 exports.translateDocuments = functions.https.onRequest(async (req, res) => {
+  // Access the 'sdg' collection in Firestore
   const sdgCollection = db.collection('sdg');
 
-  // Get all documents in 'sdg' collection
+  // Retrieve all documents within the 'sdg' collection
   const sdgDocs = await sdgCollection.get();
-   const translate = new Translate();
+  const translate = new Translate(); // Initialize the Google Translate API client
 
+  // Loop through each document in the 'sdg' collection
   for (const doc of sdgDocs.docs) {
-    const sdgId = doc.id;
+    const sdgId = doc.id; // Get the document ID
 
+    // Access the 'details' subcollection within the current document
     const detailsCollection = doc.ref.collection('details');
     const detailsDocs = await detailsCollection.get();
 
+    // Loop through each document in the 'details' subcollection
     for (const detailDoc of detailsDocs.docs) {
-      const detailId = detailDoc.id;
-      const data = detailDoc.data();
+      const detailId = detailDoc.id; // Get the detail document ID
+      const data = detailDoc.data(); // Get the data from the detail document
 
-      // Get title and body in English
+      // Extract the English version of the title and body
       const title = data.title.en;
       const body = data.body.en;
 
-      // Define target languages
-      const targetLanguages = ['es', 'fr', 'hi', 'ru', 'zh', 'ar'];//['hi'] ;//'es', 'fr', 'hi', 'ru', 'zh', 'ar']; // Add more language codes as needed
+      // Define the target languages for translation
+      const targetLanguages = ['es', 'fr', 'hi', 'ru', 'zh', 'ar']; // Spanish, French, Hindi, Russian, Chinese, Arabic
 
+      // Loop through each target language and perform translations
       for (const lang of targetLanguages) {
-        // Translate title and body
-      const [translatedTitle] = await translate.translate(title, lang);
-                const [translatedBody] = await translate.translate(body, lang);
+        // Translate the title and body to the current target language
+        const [translatedTitle] = await translate.translate(title, lang);
+        const [translatedBody] = await translate.translate(body, lang);
 
-
+        // If translations are successful, update the document with the translations
         if (translatedTitle && translatedBody) {
-          // Update the document with the translations
           await detailDoc.ref.update({
-            [`title.${lang}`]: translatedTitle,
-            [`body.${lang}`]: translatedBody
+            [`title.${lang}`]: translatedTitle, // Update the title in the target language
+            [`body.${lang}`]: translatedBody   // Update the body in the target language
           });
         }
       }
     }
-
   }
 
-  console.log('Translation process completed.');
+  console.log('Translation process completed.'); // Log completion of the translation process
+});
+
+
+// Function to translate app details!
+exports.translateAppDetailsDocuments = functions.https.onRequest(async (req, res) => {
+  const sdgCollection = db.collection('appDetails');
+
+  const sdgDocs = await sdgCollection.get();
+  const translate = new Translate();
+
+for (const detailDoc of sdgDocs.docs) {
+     const detailId = detailDoc.id;
+     const data = detailDoc.data();
+
+     // Get title and body in English
+     const title = data.title.en;
+     const body = data.body.en;
+
+     // Define target languages
+     const targetLanguages = ['es', 'fr', 'hi', 'ru', 'zh', 'ar'];
+
+     for (const lang of targetLanguages) {
+       // Translate title and body
+       const [translatedTitle] = await translate.translate(title, lang);
+       const [translatedBody] = await translate.translate(body, lang);
+
+
+       if (translatedTitle && translatedBody) {
+         // Update the document with the translations
+         await detailDoc.ref.update({
+           [`title.${lang}`]: translatedTitle,
+           [`body.${lang}`]: translatedBody
+         });
+       }
+     }
+   }
+ console.log('Translation process completed.');
 });
