@@ -1,4 +1,5 @@
 package com.ajain.togetherwecanwithgemini.data
+/* Tried using SecretManagerServiceClient but it does not currently work with Android.*/
 
 //import com.google.cloud.secretmanager.v1.SecretManagerServiceClient
 //

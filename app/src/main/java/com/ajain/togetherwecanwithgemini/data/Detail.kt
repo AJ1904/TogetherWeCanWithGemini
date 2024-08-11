@@ -2,12 +2,13 @@ package com.ajain.togetherwecanwithgemini.data
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+// Data class representing the details of an app, including title and body information in multiple languages.
 data class Detail(
     val title: Map<String, String>,
     val body: Map<String, String>
 )
 
-
+// Repository class for fetching app details from Firestore.
 class AppDetailRepository {
 
     private val firestore = FirebaseFirestore.getInstance()

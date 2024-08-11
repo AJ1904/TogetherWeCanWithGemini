@@ -1,6 +1,6 @@
 package com.ajain.togetherwecanwithgemini
 
-import AccountScreen
+import com.ajain.togetherwecanwithgemini.AccountScreen
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -63,12 +63,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.ajain.togetherwecanwithgemini.data.Goal
-
 import com.ajain.togetherwecanwithgemini.data.SDG
 import com.ajain.togetherwecanwithgemini.data.Screen
-// import com.ajain.togetherwecanwithgemini.goals.AddGoalActivity
 import com.ajain.togetherwecanwithgemini.goals.GoalDetailActivity
-
 import com.ajain.togetherwecanwithgemini.ui.theme.TogetherWeCanWithGeminiTheme
 import com.ajain.togetherwecanwithgemini.viewmodels.MainViewModel
 import com.firebase.ui.auth.AuthUI
@@ -83,34 +80,31 @@ import com.ajain.togetherwecanwithgemini.data.SummaryWithLanguage
 import com.ajain.togetherwecanwithgemini.utils.HtmlTextView
 import com.ajain.togetherwecanwithgemini.utils.markdownToHtml
 import java.util.Locale
-//import com.ajain.togetherwecanwithgemini.utils.parseJsonToMap
 import com.ajain.togetherwecanwithgemini.viewmodels.ChallengesViewModel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.net.URLDecoder
 
-
 class MainActivity : ComponentActivity() {
-
-   // private val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val mainViewModel: MainViewModel by viewModels()
-    private val challengesViewModel: ChallengesViewModel by viewModels()  // Add this line
-
-
+    private val challengesViewModel: ChallengesViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Set up window insets for edge-to-edge experience
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        enableEdgeToEdge() // Enable edge-to-edge
+        enableEdgeToEdge()
 
+        // Initialize Firebase and configure App Check
         Firebase.initialize(context = this)
         Firebase.appCheck.installAppCheckProviderFactory(
             PlayIntegrityAppCheckProviderFactory.getInstance(),
         )
 
-
+        // Set the device locale
         AppConfig.deviceLocale = getDeviceLocale(this)
 
+        // Set up the content with the main theme and MainScreen
         setContent {
             TogetherWeCanWithGeminiTheme {
                 MainScreen(
@@ -123,6 +117,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun signOut() {
+        // Sign out the user and navigate to AuthActivity
         AuthUI.getInstance()
             .signOut(this)
             .addOnCompleteListener {
@@ -133,9 +128,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun getDeviceLocale(context: Context): Locale {
+        // Retrieve the device's current locale
         return context.resources.configuration.locales[0]
     }
-
 }
 
 @Composable
@@ -144,20 +139,19 @@ fun MainScreen(
     viewModel: MainViewModel,
     challengesViewModel: ChallengesViewModel
 ) {
-
     val navController = rememberNavController()
     val context = LocalContext.current
     val goalsState = viewModel.goals.collectAsState(initial = emptyList())
 
-
     Scaffold(
-       bottomBar =  {
-           if (shouldShowBottomBar(navController)) {
-               BottomNavigationBar(navController)
-           }
-       },//{ BottomNavigationBar(navController) },
-
+        bottomBar = {
+            // Conditionally display the bottom navigation bar
+            if (shouldShowBottomBar(navController)) {
+                BottomNavigationBar(navController)
+            }
+        },
         content = { paddingValues ->
+            // Set up navigation host with various composable destinations
             NavHost(navController = navController, startDestination = Screen.Home.route) {
                 composable(Screen.Home.route) {
                     HomeContent(
@@ -170,17 +164,13 @@ fun MainScreen(
                 composable(Screen.Discover.route) {
                     DiscoverScreen(viewModel = viewModel)
                 }
-
                 composable(Screen.Challenges.route) {
                     ChallengesScreen(viewModel = challengesViewModel, navController = navController)
-
                 }
                 composable("challenge_detail/{challengeId}") { backStackEntry ->
                     val challengeId = backStackEntry.arguments?.getString("challengeId")
                     ChallengeDetailScreen(challengeId = challengeId ?: "", viewModel = challengesViewModel)
                 }
-
-
                 composable("account/{userId}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId") ?: ""
                     AccountScreen(userId = userId, onLogoutClick, viewModel = viewModel)
@@ -194,24 +184,18 @@ fun MainScreen(
                 composable("sdg_detail/{name}/{description}/{index}/{imageUrl}/{sdgUrl}") { backStackEntry ->
                     val nameJson = Uri.decode(backStackEntry.arguments?.getString("name") ?: "{}")
                     val descriptionJson = Uri.decode(backStackEntry.arguments?.getString("description") ?: "{}")
-
                     val gson = Gson()
                     val nameMap: Map<String, String> = gson.fromJson(nameJson, object : TypeToken<Map<String, String>>() {}.type)
                     val descriptionMap: Map<String, String> = gson.fromJson(descriptionJson, object : TypeToken<Map<String, String>>() {}.type)
-
-                   // val index = backStackEntry.arguments?.getInt("index") ?: 0
-                    // Retrieve index as String and convert to Int
                     val indexString = backStackEntry.arguments?.getString("index") ?: "0"
                     val index = try {
                         indexString.toInt()
                     } catch (e: NumberFormatException) {
                         0
                     }
-
                     val imageUrl = backStackEntry.arguments?.getString("imageUrl") ?: ""
                     val encodedSdgUrl = backStackEntry.arguments?.getString("sdgUrl") ?: ""
                     val sdgUrl = URLDecoder.decode(encodedSdgUrl, "UTF-8")
-
                     val sdg = SDG(
                         name = nameMap,
                         description = descriptionMap,
@@ -227,79 +211,67 @@ fun MainScreen(
     )
 }
 
-
-
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
     goals: List<Goal>,
     context: Context,
-    viewModel: MainViewModel // Ensure this is passed from MainScreen or wherever HomeContent is used
+    viewModel: MainViewModel
 ) {
     val summary by viewModel.summary.collectAsState() // Collect summary state from ViewModel
     val appDetails by viewModel.appDetails.collectAsState()
     val (showCarousel, setShowCarousel) = remember { mutableStateOf(false) }
-
-    // State to control the visibility of the full-screen dialog
     val (showSummaryDialog, setShowSummaryDialog) = remember { mutableStateOf(false) }
 
     Column(modifier = modifier
         .fillMaxSize()
         .padding(16.dp)
     ) {
-        // Summary section
+        // Summary section with a button to show the carousel and a summary card
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
-               // .height(IntrinsicSize.Max)
-            ,
+                .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.Absolute.SpaceEvenly
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
-
-                    .height(LocalConfiguration.current.screenHeightDp.dp / 4) // Adjust this height to match the SummaryCard height
-                // .background(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
+                    .height(LocalConfiguration.current.screenHeightDp.dp / 4)
             ) {
                 Button(onClick = { setShowCarousel(true) },
                     modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor= MaterialTheme.colorScheme.primary,
-                        disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.onTertiary
                     )
                 ) {
-
                     Icon(painter = painterResource(id = R.drawable.logo),
                         contentDescription = stringResource(R.string.app_name),
                         tint = Color.Unspecified
                     )
                 }
                 Icon(
-                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24), // Replace with your arrow drawable
+                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24),
                     contentDescription = "Click to learn more about app",
                     modifier = Modifier
-                        .align(Alignment.BottomEnd) // Align to the bottom right
-                        .padding(8.dp) // Adjust the padding as needed
-
-                    ,tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             summary?.let {
                 SummaryCard(
                     summary = it,
-                    onClick = { setShowSummaryDialog(true) } // Show dialog on card click
+                    onClick = { setShowSummaryDialog(true) }
                 )
             } ?: run {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(LocalConfiguration.current.screenHeightDp.dp / 4) // Adjust this height to match the SummaryCard height
+                        .height(LocalConfiguration.current.screenHeightDp.dp / 4)
                         .background(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f))
                 ) {
                     Text(
@@ -309,57 +281,39 @@ fun HomeContent(
                     )
                 }
             }
-
-
-        
-            
-
         }
-            
-         //}
-
+        // Show carousel dialog if needed
         if (showCarousel) {
-
             Dialog(properties = DialogProperties(usePlatformDefaultWidth = false),
-                onDismissRequest = { setShowCarousel(false)}) {
-                    Carousel(
-                        details = appDetails,
-                        localLanguageCode = viewModel.getLocaleLanguageCode(), // Replace with actual language code if needed
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.6f)
-
-                    )
-               // }
+                onDismissRequest = { setShowCarousel(false) }) {
+                Carousel(
+                    details = appDetails,
+                    localLanguageCode = viewModel.getLocaleLanguageCode(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.6f)
+                )
             }
-
         }
-        // Goals section
+        // Goals section with a message if no goals exist
         if (goals.isEmpty()) {
-
             Text(stringResource(R.string.go_to_learn_section_and_know_more))
         } else {
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .background(color = MaterialTheme.colorScheme.primary)
-                .padding(8.dp)
-                ,
-                contentAlignment = Alignment.Center,
-
-                ) {
+                .padding(8.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     stringResource(R.string.goals),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
-                        // .textAlign(TextAlign.Center),
-                        //  .fillMaxWidth()
                         .padding(4.dp)
-                        .background(color = MaterialTheme.colorScheme.primary),
-
-                    )
-
+                        .background(color = MaterialTheme.colorScheme.primary)
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
@@ -369,7 +323,6 @@ fun HomeContent(
                             putExtra("title", goal.title)
                             putExtra("description", goal.description)
                             putExtra("sdg", goal.sdg)
-//                            putExtra("progress", goal.progress)
                             putExtra("goalId", goal.goalId)
                         }
                         context.startActivity(intent)
@@ -379,7 +332,7 @@ fun HomeContent(
         }
     }
 
-    // Show full-screen dialog
+    // Show full-screen dialog for summary
     if (showSummaryDialog) {
         FullScreenSummaryDialog(
             summary = summary,
@@ -390,43 +343,30 @@ fun HomeContent(
 
 @Composable
 fun SummaryCard(summary: SummaryWithLanguage, onClick: () -> Unit) {
-    // Get the screen height
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-   // val cardWidth = LocalConfiguration.current.screenWidthDp.dp / 2 - 24.dp // Adjust for padding
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondary // Replace with your desired color
+            containerColor = MaterialTheme.colorScheme.secondary
         ),
         modifier = Modifier
-            // .width(cardWidth)
-            //  .fillMaxWidth(0.5f)
-            .heightIn(max = screenHeight / 4) // Set maximum height to 1/4th of screen height
+            .heightIn(max = screenHeight / 4)
             .clickable(onClick = onClick)
-
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
-
         ) {
-           // Column {
-
-                Text(text = summary.title?:"", style = MaterialTheme.typography.titleSmall)
-                Spacer(modifier = Modifier.height(8.dp))
-                // Display a truncated summary or just the title
-                //Text(text = stringResource(R.string.tap_to_view_details), style = MaterialTheme.typography.bodyMedium)
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24), // Replace with your arrow drawable
-                    contentDescription = stringResource(R.string.tap_to_view_details),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd) // Align to the bottom right
-                      //  .padding(8.dp) // Adjust the padding as needed
-
-                    ,tint = MaterialTheme.colorScheme.onSecondary
-                )
-           // }
+            Text(text = summary.title ?: "", style = MaterialTheme.typography.titleSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24),
+                contentDescription = stringResource(R.string.tap_to_view_details),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd),
+                tint = MaterialTheme.colorScheme.onSecondary
+            )
         }
     }
 }
@@ -445,30 +385,29 @@ fun FullScreenSummaryDialog(
         // Use a Box to contain the scrollable Column
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(16.dp)) // Apply rounded corners here
+                .clip(RoundedCornerShape(16.dp))
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(4.dp)
                 .systemBarsPadding()
         ) {
-            // Scrollable Column
+            // Scrollable Column for summary details
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()) // Add vertical scroll
-                    .padding(16.dp) // Padding inside the scrollable content
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
                 // Display HTML content or any other summary details
-                val htmlContent = markdownToHtml(summary.summary?:"")
+                val htmlContent = markdownToHtml(summary.summary ?: "")
                 HtmlTextView(htmlContent)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.onPrimary,
-                        contentColor= MaterialTheme.colorScheme.primary,
-
+                        containerColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = MaterialTheme.colorScheme.primary
                     )) {
                     Text(stringResource(R.string.close))
                 }
@@ -477,20 +416,19 @@ fun FullScreenSummaryDialog(
     }
 }
 
-
 @Composable
 fun GoalItem(goal: Goal, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp) // Adjust padding to align with the Box in HomeContent
+            .padding(vertical = 8.dp)
             .background(
                 color = MaterialTheme.colorScheme.primary,
                 shape = MaterialTheme.shapes.medium
             )
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically // Center items vertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             modifier = Modifier
@@ -511,12 +449,11 @@ fun GoalItem(goal: Goal, onClick: () -> Unit) {
         }
 
         // Add the arrow icon to indicate clickability
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24),
-                contentDescription = stringResource(R.string.click_to_view_details),
-                        tint = MaterialTheme.colorScheme.onSurface
-            )
-
+        Icon(
+            painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24),
+            contentDescription = stringResource(R.string.click_to_view_details),
+            tint = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -535,13 +472,10 @@ fun shouldShowBottomBar(navController: NavController): Boolean {
         Screen.Learn.route
     )
 
-    // Check if the route starts with "account" and has an additional user ID
+    // Check if the bottom bar should be shown based on the current route
     return when {
-        // Check if the route is explicitly listed
         route in routesWithBottomBar -> true
-        // Check if the route starts with "account" and has a user ID after it
         route?.startsWith("${Screen.Account.route}/") == true -> true
         else -> false
     }
 }
-

@@ -30,7 +30,6 @@ import com.ajain.togetherwecanwithgemini.data.Detail
 import com.ajain.togetherwecanwithgemini.utils.HtmlTextView
 import com.ajain.togetherwecanwithgemini.utils.markdownToHtml
 import kotlinx.coroutines.launch
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Carousel(
@@ -38,10 +37,12 @@ fun Carousel(
     modifier: Modifier = Modifier,
     localLanguageCode: String = "en"
 ) {
+    // Remember the state of the pager, which tracks the current page
     val pagerState = rememberPagerState(pageCount = { details.size })
-    val coroutineScope = rememberCoroutineScope() // Define the coroutine scope
+    val coroutineScope = rememberCoroutineScope() // Define the coroutine scope for launching animations
 
     Box(modifier = modifier.fillMaxSize()) {
+        // Horizontal pager for swiping between pages
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -52,12 +53,11 @@ fun Carousel(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp) // Increase the padding to make space for the arrows
+                    .padding(16.dp) // Padding around each card
                     .fillMaxHeight(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary // Replace with your desired color
+                    containerColor = MaterialTheme.colorScheme.primary // Set card background color
                 ),
-
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     LazyColumn {
@@ -68,15 +68,6 @@ fun Carousel(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-//                            Text(
-//                                //text = markdownToHtml(detail.body[localLanguageCode] ?: detail.body["en"] ?: ""),
-//                                text = detail.body[localLanguageCode] ?: detail.body["en"] ?: "",
-//                                style = MaterialTheme.typography.bodyMedium,
-//                                color = MaterialTheme.colorScheme.onPrimary
-//                            )
-                           // val htmlContent = markdownToHtml(detail.body[localLanguageCode] ?: detail.body["en"] ?: "")
-
-                            //HtmlTextView(htmlContent)
                             val markdownContent = detail.body[localLanguageCode] ?: detail.body["en"] ?: ""
                             val htmlContent = markdownToHtml(markdownContent)
 
@@ -88,7 +79,7 @@ fun Carousel(
             }
         }
 
-        // Left arrow
+        // Display a left arrow if not on the first page
         if (pagerState.currentPage > 0) {
             IconButton(
                 onClick = {
@@ -104,16 +95,15 @@ fun Carousel(
                         shape = CircleShape
                     )
             ) {
-                Icon(painter = painterResource(id = R.drawable.baseline_keyboard_arrow_left_24),
-                    contentDescription = stringResource(
-                    R.string.previous
-                )
-                            ,tint = MaterialTheme.colorScheme.onPrimary
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_left_24),
+                    contentDescription = stringResource(R.string.previous),
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
 
-        // Right arrow
+        // Display a right arrow if not on the last page
         if (pagerState.currentPage < pagerState.pageCount - 1) {
             IconButton(
                 onClick = {
@@ -129,9 +119,10 @@ fun Carousel(
                         shape = CircleShape
                     )
             ) {
-                Icon(painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24), contentDescription = stringResource(
-                    R.string.next
-                ),tint = MaterialTheme.colorScheme.onPrimary
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_keyboard_arrow_right_24),
+                    contentDescription = stringResource(R.string.next),
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

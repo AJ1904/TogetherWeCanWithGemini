@@ -53,7 +53,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.util.*
-
 class AddActivityActivity : ComponentActivity() {
 
     private val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -64,13 +63,16 @@ class AddActivityActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
+
+        // Retrieve goal title and user ID from intent extras
         val goalTitle = intent.getStringExtra("goalTitle") ?: ""
         val userId = intent.getStringExtra("userId") ?: ""
 
-        // Initialize Firebase App Check
+        // Initialize Firebase App Check for security
         val providerFactory = PlayIntegrityAppCheckProviderFactory.getInstance()
         FirebaseAppCheck.getInstance().installAppCheckProviderFactory(providerFactory)
 
+        // Fetch user display name from Firestore and set content view
         fetchUserDisplayName(userId) { userDisplayName ->
             setContent {
                 TogetherWeCanWithGeminiTheme {
@@ -80,6 +82,7 @@ class AddActivityActivity : ComponentActivity() {
         }
     }
 
+    // Fetches the user's display name from Firestore
     private fun fetchUserDisplayName(userId: String, callback: (String) -> Unit) {
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
@@ -99,24 +102,30 @@ class AddActivityActivity : ComponentActivity() {
 
 @Composable
 fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String, activityViewModel: ActivityViewModel = viewModel()) {
+    // State variables for managing input and UI state
     var detail by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var generatedContent by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) } // State for loading indicator
+    var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val storage = FirebaseStorage.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val coroutineScope = rememberCoroutineScope()
 
+    // Launcher for selecting image from gallery
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         imageUri = uri
     }
 
+    // Observe UI state from ViewModel
     val uiState by activityViewModel.uiState.collectAsState()
 
+    // Composable UI layout
     LazyColumn(modifier = Modifier
         .padding(16.dp)
         .systemBarsPadding()) {
+        
+        // Input field for activity details
         item {
             BasicTextField(
                 value = detail,
@@ -152,19 +161,18 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
             )
         }
 
+        // Button to upload an image and display it
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center, // Center-align items in the Row
+                horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(onClick = { pickImage.launch("image/*") },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary,
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                        contentColor = MaterialTheme.colorScheme.onTertiary
                     ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth(0.5f)
@@ -183,13 +191,14 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                         painter = painter,
                         contentDescription = null,
                         modifier = Modifier
-                            .size(60.dp) // Adjust image size here
+                            .size(60.dp)
                             .clip(RoundedCornerShape(8.dp))
                     )
                 }
             }
         }
 
+        // Button to generate and display content using Geminify
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
@@ -206,9 +215,7 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                 enabled = detail.isNotEmpty() && imageUri != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    contentColor = MaterialTheme.colorScheme.onTertiary
                 ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -217,11 +224,9 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
             }
         }
 
+        // Display generated content or errors
         item {
             Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        item {
             when (uiState) {
                 is UiState.Loading -> LoadingIndicator()
                 is UiState.Success -> {
@@ -234,7 +239,7 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                             value = generatedContent,
                             onValueChange = { generatedContent = it },
                             modifier = Modifier
-                                .weight(1f) // Take available space
+                                .weight(1f)
                                 .height(100.dp)
                                 .padding(bottom = 16.dp),
                             decorationBox = { innerTextField ->
@@ -247,9 +252,7 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                         Button(onClick = { detail = generatedContent }, shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.tertiary,
-                                contentColor = MaterialTheme.colorScheme.onTertiary,
-                                disabledContainerColor = MaterialTheme.colorScheme.primary,
-                                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                                contentColor = MaterialTheme.colorScheme.onTertiary
                             )) {
                             Text(stringResource(R.string.select))
                         }
@@ -265,6 +268,7 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
             }
         }
 
+        // Final button to add the activity
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
@@ -293,7 +297,6 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                                                 .add(activity)
                                                 .addOnSuccessListener { docRef ->
                                                     val activityId = docRef.id
-//                                                    incrementGoalProgress(firestore, userId, goalTitle)
                                                     val userRef = firestore.collection("users").document(userId)
                                                     userRef.update("activities", FieldValue.arrayUnion(activityId))
                                                         .addOnSuccessListener {
@@ -306,8 +309,6 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                                                             (context as? Activity)?.finish() // Return to previous screen
                                                         }
                                                         .addOnFailureListener {
-                                                            // Handle failure
-
                                                             isLoading = false // Hide loading indicator
                                                             Toast.makeText(
                                                                 context,
@@ -317,11 +318,9 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                                                         }
                                                 }
                                                 .addOnFailureListener {
-                                                    // Handle failure
                                                     isLoading = false // Hide loading indicator
                                                 }
                                         }.addOnFailureListener {
-                                            // Handle failure
                                             isLoading = false // Hide loading indicator
                                         }
                                     },
@@ -336,24 +335,23 @@ fun AddActivityScreen(goalTitle: String, userId: String, userDisplayName: String
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    contentColor = MaterialTheme.colorScheme.onTertiary
                 ),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth() // Increase size of Add Activity button here
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.add_activity))
             }
         }
     }
 
+    // Show loading indicator if data is being processed
     if (isLoading) {
         LoadingIndicator()
     }
 }
 
-
+// Loads a bitmap from the given URI
 suspend fun loadImageBitmap(context: android.content.Context, uri: Uri): Bitmap? {
     return withContext(Dispatchers.IO) {
         val loader = ImageLoader(context)
@@ -366,32 +364,14 @@ suspend fun loadImageBitmap(context: android.content.Context, uri: Uri): Bitmap?
     }
 }
 
-//fun incrementGoalProgress(firestore: FirebaseFirestore, userId: String, goalTitle: String) {
-//    val userDocRef = firestore.collection("users").document(userId)
-//    userDocRef.get().addOnSuccessListener { document ->
-//        if (document != null && document.exists()) {
-//            val goals = document.get("goals") as? List<Map<String, Any>> ?: emptyList()
-//            val updatedGoals = goals.map { goal ->
-//                if (goal["title"] == goalTitle) {
-//                    val currentProgress = (goal["progress"] as? Long ?: 0L) + 1
-//                    goal.toMutableMap().apply { this["progress"] = currentProgress }
-//                } else {
-//                    goal
-//                }
-//            }
-//            userDocRef.update("goals", updatedGoals)
-//        }
-//    }.addOnFailureListener {
-//        // Handle failure
-//    }
-//}
-
+// Compresses the bitmap and returns it as a byte array
 fun compressBitmap(bitmap: Bitmap, quality: Int = 80): ByteArray {
     val outputStream = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
     return outputStream.toByteArray()
 }
 
+// Uploads the compressed bitmap to Firebase Storage
 fun uploadCompressedImage(bitmap: Bitmap, storageReference: StorageReference, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
     val compressedImage = compressBitmap(bitmap)
     val uploadTask = storageReference.putBytes(compressedImage)

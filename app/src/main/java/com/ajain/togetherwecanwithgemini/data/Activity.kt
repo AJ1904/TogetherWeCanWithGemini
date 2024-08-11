@@ -1,5 +1,6 @@
 package com.ajain.togetherwecanwithgemini.data
 
+// Data class representing an activity with attributes for details, associated goal, image, timestamp, user information, and publication status.
 data class Activity(
     val detail: String = "",
     val goalTitle: String = "",

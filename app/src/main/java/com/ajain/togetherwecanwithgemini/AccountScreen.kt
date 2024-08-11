@@ -1,3 +1,5 @@
+package com.ajain.togetherwecanwithgemini
+
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
@@ -72,28 +74,29 @@ import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 @Composable
 fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainViewModel = viewModel()) {
+    // Initialize Firebase services and context
     val firestore = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val activities = remember { mutableStateListOf<Activity>() }
     var listenerRegistration by remember { mutableStateOf<ListenerRegistration?>(null) }
 
+    // State variables for user details and counts
     var displayName by remember { mutableStateOf("") }
     var challengeCount by remember { mutableStateOf(0) }
     var activityCount by remember { mutableStateOf(0) }
     val currentUserId = auth.currentUser?.uid
     val isCurrentUser = userId == currentUserId
 
-    Log.d("line 90", isCurrentUser.toString())
+    // Fetch and observe user data and activities from Firestore
     LaunchedEffect(userId) {
-        // Cancel existing listener if any
-        listenerRegistration?.remove()
+        listenerRegistration?.remove() // Cancel existing listener if any
 
         val userRef = firestore.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
+            // Extract user details and activities
             if (document != null) {
                 displayName = document.getString("displayName") ?: ""
                 if (document.contains("activities")) {
@@ -102,12 +105,9 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                     var query = firestore.collection("activities")
                         .whereIn(FieldPath.documentId(), activityIds.map { it.toString() })
 
+                    // Apply filter if not the current user
                     if (!isCurrentUser) {
-                        Log.d("AccountScreen", "Applying isPublished filter")
-                        query = query.whereEqualTo("isPublished", true) // Create a new query with the filter
-                        Log.d("line 104", query.toString())
-                    } else {
-                        Log.d("AccountScreen", "No filter applied for current user")
+                        query = query.whereEqualTo("isPublished", true)
                     }
 
                     query.addSnapshotListener { snapshot, e ->
@@ -117,27 +117,27 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                         }
                         snapshot?.let { querySnapshot ->
                             val updatedActivities = querySnapshot.documents.mapNotNull { doc ->
-                                val data = doc.data!!
+                                // Map Firestore document to Activity object
                                 Activity(
-                                    goalTitle = data["goalTitle"] as? String ?: "",
-                                    detail = data["detail"] as? String ?: "",
-                                    imageUrl = data["imageUrl"] as? String ?: "",
-                                    timestamp = data["timestamp"] as? Long ?: 0L,
-                                    userId = data["userId"] as? String ?: "",
-                                    userDisplayName = data["userDisplayName"] as? String ?: "",
+                                    goalTitle = doc.getString("goalTitle") ?: "",
+                                    detail = doc.getString("detail") ?: "",
+                                    imageUrl = doc.getString("imageUrl") ?: "",
+                                    timestamp = doc.getLong("timestamp") ?: 0L,
+                                    userId = doc.getString("userId") ?: "",
+                                    userDisplayName = doc.getString("userDisplayName") ?: "",
                                     id = doc.id,
-                                    isPublished = data["isPublished"] as? Boolean ?: false,
-                                    likeCount = data["likeCount"] as? Long ?: 0L
+                                    isPublished = doc.getBoolean("isPublished") ?: false,
+                                    likeCount = doc.getLong("likeCount") ?: 0L
                                 )
                             }
                             activities.clear()
                             activities.addAll(updatedActivities)
-                           // activityCount = activities.size
                         }
                     }
                 }
             }
 
+            // Observe challenge count
             firestore.collection("challenge_entries")
                 .whereEqualTo("user_id", userId)
                 .addSnapshotListener { snapshot, e ->
@@ -150,13 +150,14 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
         }
     }
 
-
+    // Clean up listener when composable is disposed
     DisposableEffect(userId) {
         onDispose {
             listenerRegistration?.remove()
         }
     }
 
+    // Function to share user details
     fun shareDetails() {
         val shareText = """
             User: $displayName
@@ -172,6 +173,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
         context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_via)))
     }
 
+    // Function to delete an activity
     fun deleteActivity(activityId: String) {
         val userRef = firestore.collection("users").document(userId)
         userRef.update("activities", FieldValue.arrayRemove(activityId))
@@ -189,6 +191,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
             }
     }
 
+    // Function to publish or unpublish an activity
     fun publishActivity(activityId: String, isPublished: Boolean) {
         firestore.collection("activities").document(activityId).update("isPublished", !isPublished)
             .addOnSuccessListener {
@@ -201,6 +204,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
             }
     }
 
+    // Function to share an activity
     fun shareActivity(activity: Activity) {
         val storage = FirebaseStorage.getInstance()
 
@@ -220,10 +224,8 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                     putExtra(Intent.EXTRA_STREAM, fileUri)
                     type = "image/jpeg"
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 }
-                context.startActivity(Intent.createChooser(shareIntent,
-                    context.getString(R.string.share_via)))
+                context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_via)))
             }.addOnFailureListener { e ->
                 Log.e("AccountScreen", "Error downloading image: ${e.message}", e)
             }
@@ -232,6 +234,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
         }
     }
 
+    // Composable UI layout for the account screen
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -241,7 +244,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Top Row containing display name, counts, and buttons
+            // Top Row with user info, challenge and activity counts, and action buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,11 +254,11 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Column containing display name
+                // Column with user's display name
                 Column(
                     modifier = Modifier
                         .padding(8.dp)
-                        .weight(1.1f), // Allows the column to take up only as much space as needed
+                        .weight(1.1f),
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
@@ -265,19 +268,18 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                     )
                 }
 
-                // Row containing challenge and activity counts
+                // Row with challenge and activity counts
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(2f) // Adjusts the width to distribute space between counts and buttons
+                    modifier = Modifier.weight(2f)
                 ) {
+                    // Challenge count column
                     Column(horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(color = MaterialTheme.colorScheme.primary)
                             .padding(4.dp)
-
-
                     ) {
                         Text(
                             text = "$challengeCount",
@@ -286,9 +288,10 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                         )
                         Text(text = "Challenges",
                             style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimary)
+                            color = MaterialTheme.colorScheme.onPrimary)
                     }
 
+                    // Activity count column
                     Column(horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -299,15 +302,15 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
-                        Text(text = "Actions", style = MaterialTheme.typography.bodySmall,  color = MaterialTheme.colorScheme.onPrimary)
+                        Text(text = "Actions", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
 
-                // Row containing share and logout buttons (if applicable)
+                // Row with share and logout buttons
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f) // Allocates space for buttons
+                    modifier = Modifier.weight(1f)
                 ) {
                     IconButton(onClick = { shareDetails() }) {
                         Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
@@ -321,6 +324,7 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                 }
             }
 
+            // LazyColumn to display the list of activities
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -336,8 +340,8 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-
                         if (isCurrentUser) {
+                            // Action buttons for sharing, publishing, and deleting activities
                             IconButton(onClick = { shareActivity(activity) }) {
                                 Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                             }
@@ -351,14 +355,14 @@ fun AccountScreen(userId: String, onLogoutClick: () -> Unit, viewModel: MainView
                                 Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                             }
                             Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp) // Space between like count and icon
-                        ) {
-                            Text(text = "${activity.likeCount}", style = MaterialTheme.typography.bodySmall)
-                            IconButton(onClick = { }, enabled = false) {
-                                Icon(Icons.Filled.Favorite, contentDescription = stringResource(R.string.like))
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(text = "${activity.likeCount}", style = MaterialTheme.typography.bodySmall)
+                                IconButton(onClick = { }, enabled = false) {
+                                    Icon(Icons.Filled.Favorite, contentDescription = stringResource(R.string.like))
+                                }
                             }
-                        }
                         }
                     }
                 }

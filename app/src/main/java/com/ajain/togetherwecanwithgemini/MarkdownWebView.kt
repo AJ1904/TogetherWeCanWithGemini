@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.ajain.togetherwecanwithgemini.utils.markdownToHtml
 
+// Convert Markdown content to HTML format and create a WebView to display the HTML content
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun MarkdownWebView(markdown: String) {

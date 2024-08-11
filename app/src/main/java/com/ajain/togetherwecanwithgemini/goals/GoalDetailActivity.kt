@@ -37,7 +37,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
-
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -51,60 +50,66 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.util.Locale
 
+// Activity to handle detailed view and management of a specific goal
 class GoalDetailActivity : ComponentActivity() {
 
+    // Firebase Authentication instance for user management
     private val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+    // ViewModel instance for managing SDG-related data
     private val sdgViewModel: SDGViewModel by viewModels()
 
+    // FusedLocationProviderClient for accessing location services
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        enableEdgeToEdge() // Enable edge-to-edge
+        enableEdgeToEdge() // Enable edge-to-edge display
 
+        // Retrieve goal details from intent extras
         val title = intent.getStringExtra("title") ?: ""
         val description = intent.getStringExtra("description") ?: ""
         val sdg = intent.getStringExtra("sdg") ?: ""
-//        val progress = intent.getIntExtra("progress", 0)
         val user = mAuth.currentUser
         val goalId = intent.getStringExtra("goalId") ?: ""
 
-
-        // Fetch steps when the activity is created
+        // Fetch steps related to the goal
         if (user != null) {
             fetchSteps(user.uid, title)
         }
 
+        // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-
+        // Set up the UI with Compose
         setContent {
             TogetherWeCanWithGeminiTheme {
                 if (user != null) {
+                    // Observe ViewModel state for steps
                     val suggestedSteps by sdgViewModel.steps.collectAsState()
                     val firestoreSteps by sdgViewModel.firestoreSteps.collectAsState()
 
+                    // Render the goal detail screen
                     GoalDetailScreen(
                         title = title,
                         description = description,
                         sdg = sdg,
-//                        progress = progress,
                         onAddActivityClick = {
+                            // Handle add activity button click
                             val intent = Intent(this, AddActivityActivity::class.java).apply {
                                 putExtra("goalTitle", title)
                                 putExtra("userId", user.uid)
-                             //   putExtra("goalId", goalId)
                             }
                             startActivity(intent)
                         },
                         onSuggestStepsClick = {
+                            // Handle suggest steps button click
                             if (!LocationUtils.hasLocationPermission(this)) {
                                 LocationUtils.requestLocationPermission(this)
                             } else {
                                 LocationUtils.getLocationAndGeocode(this, fusedLocationClient) { location ->
                                     Log.d("Location aj:", "Location: $location")
-                                    sdgViewModel.suggestStepsForGoal(title, description, sdg, location?:"")
+                                    sdgViewModel.suggestStepsForGoal(title, description, sdg, location ?: "")
                                 }
                             }
                             sdgViewModel.suggestStepsForGoal(title, description, sdg, "")
@@ -128,9 +133,9 @@ class GoalDetailActivity : ComponentActivity() {
                 }
             }
         }
-
     }
 
+    // Fetches steps associated with the given goal from Firestore
     private fun fetchSteps(userId: String, goalTitle: String) {
         val db = FirebaseFirestore.getInstance()
         val stepsRef = db.collection("users").document(userId)
@@ -157,26 +162,26 @@ class GoalDetailActivity : ComponentActivity() {
         }
     }
 
-private fun addStepToFirestore(userId: String, goalTitle: String, step: String) {
-    val db = FirebaseFirestore.getInstance()
-    val goalRef = db.collection("users").document(userId).collection("goals").document(goalTitle)
+    // Adds a new step to the Firestore database under the specified goal
+    private fun addStepToFirestore(userId: String, goalTitle: String, step: String) {
+        val db = FirebaseFirestore.getInstance()
+        val goalRef = db.collection("users").document(userId).collection("goals").document(goalTitle)
 
+        sdgViewModel.isThisStepRelatedToMaps(step) { query ->
+            Log.d("addStepToFirestore", "Query generated: $query") // Log the generated query
+            val stepData = mapOf(
+                "step" to step,
+                "completed" to false,
+                "query" to query
+            )
 
-    sdgViewModel.isThisStepRelatedToMaps(step) { query ->
-        Log.d("addStepToFirestore", "Query generated: $query") // Log the generated query
-        val stepData = mapOf(
-            "step" to step,
-            "completed" to false,
-            "query" to query
-        )
-
-        goalRef.collection("steps").add(stepData)
-            .addOnSuccessListener { Log.d("Firestore", "Step added successfully") }
-            .addOnFailureListener { e -> Log.w("Firestore", "Error adding step", e) }
+            goalRef.collection("steps").add(stepData)
+                .addOnSuccessListener { Log.d("Firestore", "Step added successfully") }
+                .addOnFailureListener { e -> Log.w("Firestore", "Error adding step", e) }
+        }
     }
-}
 
-
+    // Removes a step from the Firestore database
     private fun removeStepFromFirestore(userId: String, goalTitle: String, stepId: String) {
         val db = FirebaseFirestore.getInstance()
         val stepRef = db.collection("users").document(userId).collection("goals").document(goalTitle)
@@ -187,6 +192,7 @@ private fun addStepToFirestore(userId: String, goalTitle: String, step: String) 
             .addOnFailureListener { e -> Log.w("Firestore", "Error removing step", e) }
     }
 
+    // Updates the completion status of a step in the Firestore database
     private fun updateStepCompletion(userId: String, goalTitle: String, stepId: String, isCompleted: Boolean) {
         val db = FirebaseFirestore.getInstance()
         val stepRef = db.collection("users").document(userId).collection("goals").document(goalTitle)
@@ -196,7 +202,8 @@ private fun addStepToFirestore(userId: String, goalTitle: String, step: String) 
             .addOnSuccessListener { Log.d("Firestore", "Step completion updated successfully") }
             .addOnFailureListener { e -> Log.w("Firestore", "Error updating step completion", e) }
     }
-    // Method to handle place search
+
+    // Initiates a place search activity based on the provided query
     private fun searchNearbyPlaces(query: String) {
         // Create an intent to start a new activity that handles the place search
         val intent = Intent(this@GoalDetailActivity, PlaceSearchActivity::class.java).apply {
@@ -204,19 +211,14 @@ private fun addStepToFirestore(userId: String, goalTitle: String, step: String) 
         }
         startActivity(intent)
     }
-
-
-
-
-
 }
 
+// Composable function to display and manage goal details
 @Composable
 fun GoalDetailScreen(
     title: String,
     description: String,
     sdg: String,
-//    progress: Int,
     onAddActivityClick: () -> Unit,
     onSuggestStepsClick: () -> Unit,
     firestoreSteps: List<Step>?,
@@ -236,38 +238,34 @@ fun GoalDetailScreen(
         item {
             Text(text = title, style = MaterialTheme.typography.headlineSmall)
             Text(text = description, style = MaterialTheme.typography.bodyMedium)
-//            Text(text = "SDG: $sdg", style = MaterialTheme.typography.bodyMedium)
-//            Text(text = "Progress: $progress", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(16.dp))
             Row (
                 horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth())
+                modifier = Modifier.fillMaxWidth())
             {
                 Button(onClick = onAddActivityClick,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-
-                    ),shape = RoundedCornerShape(8.dp)
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                    ), shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(text = stringResource(R.string.add_activity))
                 }
-                //Spacer(modifier = Modifier.width(4.dp))
                 Button(onClick = onSuggestStepsClick,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-
-                        ),
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                    ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(text = stringResource(R.string.suggest_steps))
                 }
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
         }
+
+        // Display list of steps fetched from Firestore
         firestoreSteps?.let { stepList ->
             items(stepList) { step ->
                 Row(
@@ -290,28 +288,21 @@ fun GoalDetailScreen(
                         Text(text = step.stepText, modifier = Modifier.weight(1f))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Row(
-
-                    )
-                    {
+                    Row {
                         Button(
-                        //colors = [Color.Red],
-                        colors = ButtonDefaults.buttonColors(Color.Red),
-                        onClick = { onRemoveStepClick(step.id) },
+                            colors = ButtonDefaults.buttonColors(Color.Red),
+                            onClick = { onRemoveStepClick(step.id) },
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                        //Text(text = "Remove", color = Color.White)
                             Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_step))
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-//
                         if (toLowerCase(step.query) != "no") {
                             Button(
                                 colors = ButtonDefaults.buttonColors(Color.Blue),
                                 onClick = { onSearchPlacesClick(step.query) },
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                //Text(text = "Search Places", color = Color.White)
                                 Icon(Icons.Default.LocationOn, contentDescription = stringResource(R.string.search_places))
                             }
                         }
@@ -324,6 +315,7 @@ fun GoalDetailScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
         }
 
+        // Display list of suggested steps
         suggestedSteps?.let { stepList ->
             items(stepList) { step ->
                 Row(
@@ -334,7 +326,7 @@ fun GoalDetailScreen(
                 ) {
                     Text(text = step.stepText, modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onAddStepClick(step.stepText) },shape = RoundedCornerShape(8.dp)) {
+                    Button(onClick = { onAddStepClick(step.stepText) }, shape = RoundedCornerShape(8.dp)) {
                         Text(text = stringResource(R.string.add))
                     }
                 }
@@ -342,4 +334,3 @@ fun GoalDetailScreen(
         }
     }
 }
-

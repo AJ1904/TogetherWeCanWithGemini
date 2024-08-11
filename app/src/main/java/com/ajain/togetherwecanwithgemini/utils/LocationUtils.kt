@@ -13,8 +13,10 @@ import com.google.android.gms.location.LocationServices
 import java.util.Locale
 
 object LocationUtils {
+    // Request code for location permissions
     const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
+    // Requests location permissions from the user
     fun requestLocationPermission(activity: Activity) {
         ActivityCompat.requestPermissions(
             activity,
@@ -26,6 +28,7 @@ object LocationUtils {
         )
     }
 
+    // Checks if the app has location permissions
     fun hasLocationPermission(activity: Activity): Boolean {
         return ContextCompat.checkSelfPermission(
             activity,
@@ -36,6 +39,7 @@ object LocationUtils {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    // Retrieves the device's last known location and converts it to a human-readable address
     fun getLocationAndGeocode(activity: Activity, fusedLocationClient: FusedLocationProviderClient, onLocationRetrieved: (String?) -> Unit) {
         if (hasLocationPermission(activity)) {
             fusedLocationClient.lastLocation
@@ -64,10 +68,8 @@ object LocationUtils {
                     onLocationRetrieved(null)
                 }
         } else {
-            Log.d("LocationError", "Location permission not granted")
+            Log.e("LocationError", "Location permission not granted")
             onLocationRetrieved(null)
         }
     }
-
-
 }

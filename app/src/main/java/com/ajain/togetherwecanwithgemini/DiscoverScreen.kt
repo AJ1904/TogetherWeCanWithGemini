@@ -1,6 +1,6 @@
 package com.ajain.togetherwecanwithgemini
 
-import AccountScreen
+import com.ajain.togetherwecanwithgemini.AccountScreen
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color.alpha
@@ -56,13 +56,14 @@ import com.google.accompanist.swiperefresh.SwipeRefreshState
 
 @Composable
 fun DiscoverScreen(viewModel: MainViewModel) {
+    // Displays a paginated list of activities with pull-to-refresh functionality.
     val activities = viewModel.activities.collectAsLazyPagingItems()
     val swipeRefreshState = remember { SwipeRefreshState(isRefreshing = false) }
 
     SwipeRefresh(
         state = swipeRefreshState,
         onRefresh = {
-            viewModel.refreshActivities()
+            viewModel.refreshActivities() // Trigger refresh for new data
         }
     ) {
         LazyColumn(
@@ -74,21 +75,22 @@ fun DiscoverScreen(viewModel: MainViewModel) {
             items(activities.itemCount) { index ->
                 val activity = activities[index]
                 activity?.let {
-                    ActivityItem(activity = it, viewModel = viewModel)
+                    ActivityItem(activity = it, viewModel = viewModel) // Display each activity item
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
 
+            // Handle different load states for pagination
             when {
                 activities.loadState.refresh is LoadState.Loading -> {
                     item {
-                        LoadingIndicator()
+                        LoadingIndicator() // Show loading indicator during initial load
                     }
                 }
 
                 activities.loadState.append is LoadState.Loading -> {
                     item {
-                        LoadingIndicator()
+                        LoadingIndicator() // Show loading indicator during pagination
                     }
                 }
 
@@ -118,13 +120,14 @@ fun DiscoverScreen(viewModel: MainViewModel) {
                     }
                 }
             }
-            item {Spacer(modifier = Modifier.height(24.dp))}
+            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
 
 @Composable
 fun ActivityItem(activity: Activity, viewModel: MainViewModel, showActions: Boolean = true) {
+    // Displays a single activity with details and actions (like, share) if enabled.
     var likeCount by remember { mutableLongStateOf(activity.likeCount ?: 0) }
     val context = LocalContext.current
     var showUserProfileDialog by remember { mutableStateOf(false) }
@@ -149,7 +152,6 @@ fun ActivityItem(activity: Activity, viewModel: MainViewModel, showActions: Bool
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = activity.detail, style = MaterialTheme.typography.bodyMedium)
-            // Spacer(modifier = Modifier.height(4.dp))
             if (showActions) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(8.dp))
@@ -157,24 +159,21 @@ fun ActivityItem(activity: Activity, viewModel: MainViewModel, showActions: Bool
                     horizontalArrangement = Arrangement.SpaceAround,
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-
-                    ) {
-
+                ) {
                     Text(
                         text = activity.userDisplayName,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
                             .clickable {
-                                showUserProfileDialog = true
+                                showUserProfileDialog = true // Show user profile dialog on click
                             }
                     )
-                    //Spacer(modifier = Modifier.width(16.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (likeCount > 0) {
                             Text(text = "$likeCount")
                         }
                         IconButton(onClick = {
-                            viewModel.likeActivity(activity.id)
+                            viewModel.likeActivity(activity.id) // Increment like count
                             likeCount += 1
                         }) {
                             Icon(
@@ -184,14 +183,13 @@ fun ActivityItem(activity: Activity, viewModel: MainViewModel, showActions: Bool
                         }
                     }
                     IconButton(onClick = {
-                        shareActivity(context, activity)
+                        shareActivity(context, activity) // Share activity
                     }) {
                         Icon(
                             Icons.Filled.Share,
                             contentDescription = stringResource(R.string.share)
                         )
                     }
-                    
                 }
                 if (showUserProfileDialog) {
                     UserProfileDialog(
@@ -211,6 +209,7 @@ fun UserProfileDialog(
     onDismissRequest: () -> Unit,
     viewModel: MainViewModel
 ) {
+    // Displays a dialog with user profile information.
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -224,13 +223,11 @@ fun UserProfileDialog(
                 viewModel = viewModel
             )
         }
-        }
-
-
+    }
 }
 
-
 fun shareActivity(context: Context, activity: Activity) {
+    // Initiates a share intent to share activity details.
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_SUBJECT, activity.goalTitle)
@@ -244,4 +241,3 @@ fun shareActivity(context: Context, activity: Activity) {
     }
     context.startActivity(Intent.createChooser(shareIntent, "Share via"))
 }
-

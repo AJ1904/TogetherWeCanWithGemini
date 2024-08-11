@@ -17,7 +17,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -55,29 +54,35 @@ import java.util.Locale
 
 @Composable
 fun ChallengeDetailScreen(challengeId: String, viewModel: ChallengesViewModel) {
+    // Collect the challenges from the view model
     val challenges = viewModel.challenges.collectAsState().value
+    // Find the specific challenge based on the provided challengeId
     val challenge = challenges.find { it.id == challengeId } ?: return
+
+    // State for controlling dialogs and submission status
     var showDialog by remember { mutableStateOf(false) }
     var showEntryDialog by remember { mutableStateOf(false) }
     var showLeaderboardDialog by remember { mutableStateOf(false) }
-
     var hasSubmitted by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
 
+    // Firebase and context setup
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     val userId = mAuth.currentUser?.uid
 
+    // Get the local language settings
     val localLanguage = viewModel.getLocaleLanguage()
     val localLanguageCode = viewModel.getLocaleLanguageCode()
 
-    // Load SDG data
+    // Load SDG data and find the relevant SDG
     val sdgs = remember { loadSDGs(context) }
     val sdgNumber = challenge.sdg.substringAfter("SDG ").substringBefore(":").toIntOrNull()
     val sdg = sdgNumber?.let { number -> sdgs.find { it.index == number } }
     val sdgTranslation = sdg?.name?.get(localLanguageCode) ?: sdg?.name?.get("en")
 
+    // Check if the user has submitted an entry for this challenge
     LaunchedEffect(challengeId, userId) {
         if (userId != null) {
             db.collection("challenge_entries")
@@ -103,21 +108,21 @@ fun ChallengeDetailScreen(challengeId: String, viewModel: ChallengesViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 64.dp) // To prevent overlap with BottomNavigationBar
+                .padding(bottom = 64.dp) // Ensure content does not overlap with BottomNavigationBar
                 .systemBarsPadding()
         ) {
-            // Title
+            // Challenge title
             Text(
                 text = challenge.title,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-// SDG Translation and Dates Row
+
+            // SDG Translation and Dates
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-             //   horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(bottom = 16.dp)
             ) {
                 // SDG Translation
                 sdgTranslation?.let {
@@ -131,16 +136,16 @@ fun ChallengeDetailScreen(challengeId: String, viewModel: ChallengesViewModel) {
                                 shape = MaterialTheme.shapes.small
                             )
                             .padding(8.dp)
-                            // .padding(bottom = 8.dp)
                             .fillMaxWidth()
                     )
                 }
-
-
             }
-            // Dates
-            Row (horizontalArrangement = Arrangement.Absolute.SpaceEvenly ,
-                modifier = Modifier.fillMaxWidth()){
+
+            // Challenge Dates and Buttons
+            Row(
+                horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 DateInfo(
                     label = stringResource(R.string.start_date),
                     date = challenge.startDate
@@ -151,28 +156,29 @@ fun ChallengeDetailScreen(challengeId: String, viewModel: ChallengesViewModel) {
                     date = challenge.endDate
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Button(onClick = { showLeaderboardDialog = true },
+                Button(
+                    onClick = { showLeaderboardDialog = true },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor= MaterialTheme.colorScheme.primary,
-                        disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(8.dp)
-
                 ) {
                     Text(stringResource(R.string.leaderboard), style = MaterialTheme.typography.bodySmall)
                 }
             }
-Spacer(modifier = Modifier.height(8.dp))
-            // Description
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Challenge Description
             Text(
                 text = challenge.description,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-// Buttons
+            // Action Buttons
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -181,10 +187,10 @@ Spacer(modifier = Modifier.height(8.dp))
                     onClick = { showDialog = true },
                     enabled = !hasSubmitted,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor= MaterialTheme.colorScheme.primary,
-                        disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
@@ -194,21 +200,20 @@ Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = { showEntryDialog = true },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor= MaterialTheme.colorScheme.primary,
-                        disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(8.dp)
-
                 ) {
                     Text(stringResource(R.string.view_my_entry), style = MaterialTheme.typography.bodySmall)
                 }
-
             }
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
+
             // Evaluation Criteria
             Text(
                 text = stringResource(R.string.evaluation_criteria),
@@ -218,7 +223,6 @@ Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
             challenge.evaluationCriteria.forEachIndexed { index, criteria ->
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -248,7 +252,6 @@ Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
             }
-
         }
 
         // Dialogs
@@ -258,7 +261,6 @@ Spacer(modifier = Modifier.height(8.dp))
                 onDismiss = { showDialog = false },
                 localLanguage = localLanguage,
                 localLanguageCode = localLanguageCode,
-
                 onSubmissionComplete = { success ->
                     if (success) {
                         Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
@@ -284,23 +286,24 @@ Spacer(modifier = Modifier.height(8.dp))
             ViewLeaderboardDialog(
                 challengeId = challengeId,
                 onDismiss = { showLeaderboardDialog = false },
-                userId = userId?: ""
+                userId = userId ?: ""
             )
         }
     }
 }
-
 
 @Composable
 fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: String = "") {
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
 
+    // State for managing leaderboard data and loading status
     var leaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) }
     var userRank by remember { mutableStateOf<LeaderboardEntry?>(null) }
     var loading by remember { mutableStateOf(true) }
     var noEntries by remember { mutableStateOf(false) }
 
+    // Load leaderboard data
     LaunchedEffect(challengeId) {
         db.collection("challenge_entries")
             .whereEqualTo("challenge_id", challengeId)
@@ -318,7 +321,7 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
                     noEntries = true
                     loading = false
                 } else {
-                    // Fetch display names for each user
+                    // Fetch display names for each user in the leaderboard
                     val fetchDisplayNames = entries.map { entry ->
                         db.collection("users").document(entry.userId).get()
                             .continueWith { task ->
@@ -387,6 +390,7 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
                         .verticalScroll(rememberScrollState())
                         .clip(RoundedCornerShape(8.dp))
                 ) {
+                    // Dialog title and close button
                     Box(modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))) {
@@ -408,6 +412,7 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
                     HorizontalDivider()
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Display loading indicator or leaderboard entries
                     if (loading) {
                         LoadingIndicator()
                     } else {
@@ -421,7 +426,6 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .background(MaterialTheme.colorScheme.background),
-                                // .padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
@@ -441,11 +445,13 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
                                 )
                             }
 
+                            // Display leaderboard entries
                             leaderboard.forEachIndexed { index, entry ->
                                 LeaderboardEntryView(entry, index + 1, userId)
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
 
+                            // Display user rank if not already in the leaderboard
                             userRank?.let {
                                 if (leaderboard.none { it.userId == userId }) {
                                     Spacer(modifier = Modifier.height(16.dp))
@@ -462,12 +468,14 @@ fun ViewLeaderboardDialog(challengeId: String, onDismiss: () -> Unit, userId: St
 
 @Composable
 fun LeaderboardEntryView(entry: LeaderboardEntry, rank: Int, currentUserId: String) {
+    // Determine background color for current user
     val backgroundColor = if (entry.userId == currentUserId) {
         MaterialTheme.colorScheme.tertiary
     } else {
-        MaterialTheme.colorScheme.primary.copy(alpha=0.5f)
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
     }
 
+    // Display leaderboard entry with rank and score
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -483,9 +491,9 @@ fun LeaderboardEntryView(entry: LeaderboardEntry, rank: Int, currentUserId: Stri
     }
 }
 
-
 @Composable
 fun DateInfo(label: String, date: String) {
+    // Composable to display a label and a date with appropriate styling.
     Column  {
         Text(
             text = label,
@@ -499,41 +507,45 @@ fun DateInfo(label: String, date: String) {
         )
     }
 }
+
 @Composable
-fun ChallengeEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguage: String, localLanguageCode: String,onSubmissionComplete: (Boolean) -> Unit,
-                         isSubmitting: Boolean,
-                         setSubmitting: (Boolean) -> Unit) {
+fun ChallengeEntryDialog(
+    challengeId: String,
+    onDismiss: () -> Unit,
+    localLanguage: String,
+    localLanguageCode: String,
+    onSubmissionComplete: (Boolean) -> Unit,
+    isSubmitting: Boolean,
+    setSubmitting: (Boolean) -> Unit
+) {
+    // Composable dialog for users to submit their challenge entry with description and media files.
     var description by remember { mutableStateOf("") }
     var mediaUris by remember { mutableStateOf(listOf<Uri>()) }
     val context = LocalContext.current
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Launchers for camera and permission requests.
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        Log.d("CameraLauncher", "Camera result received")
         if (result.resultCode == RESULT_OK) {
             photoUri?.let {
-                Log.d("CameraLauncher", "Image URI: $it")
                 mediaUris = mediaUris + it
                 photoUri = null
             }
-        } else {
-            Log.e("CameraLauncher", "Camera result not OK: ${result.resultCode}")
         }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        Log.d("PermissionLauncher", "Camera permission granted: $isGranted")
         if (isGranted) {
             photoUri = createImageFileUri(context)
             dispatchTakePictureIntent(context, cameraLauncher, photoUri)
         } else {
-            // Show alert that permission is required
-            Log.e("CameraPermission", "Camera permission is required")
+            // Handle the case where permission is not granted.
         }
     }
 
+    // Display the dialog with form elements for entry submission.
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -542,80 +554,70 @@ fun ChallengeEntryDialog(challengeId: String, onDismiss: () -> Unit, localLangua
                 .fillMaxWidth(0.9f)
                 .fillMaxHeight(0.9f)
         ){
-        Box(modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .background(MaterialTheme.colorScheme.background)
-        ) {
-            if (isSubmitting) {
-                LoadingIndicator()
-            }
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.align(Alignment.TopEnd)
+            Box(modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .background(MaterialTheme.colorScheme.background)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(id = R.string.close)
-                )
-            }
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = stringResource(R.string.submit_your_entry), style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(8.dp))
-                BasicTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                        .padding(8.dp)
-                        .heightIn(min = 100.dp) // Minimum height to ensure multiple lines are visible
-
-
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.media_files))
-                Spacer(modifier = Modifier.height(8.dp))
-                ImageGrid(mediaUris, context, cameraLauncher, permissionLauncher, onImageCapture = { uri ->
-                    photoUri = uri
-                })
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = {
-                        setSubmitting(true)
-                        handleSubmission(context, challengeId, description, mediaUris, onDismiss, localLanguage, localLanguageCode,
-                                onSuccess = {
-//                            isLoading = false
-//                            showToast("Success")
-//                            setHasSubmitted(true)
-                                    setSubmitting(false)
-                                    onSubmissionComplete(true)
-                            onDismiss()
-                        },
-                            onError = {
-//                                isLoading = false
-//                                showToast("Error")
-                                setSubmitting(false)
-                                onSubmissionComplete(false)
-                            }//,
-                            //setHasSubmitted = { hasSubmitted = it }
-                        )
-
-                              },
-                    enabled = description.isNotEmpty() && mediaUris.isNotEmpty(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor= MaterialTheme.colorScheme.tertiary,
-                        contentColor= MaterialTheme.colorScheme.onTertiary,
-                        disabledContainerColor= PurpleGrey40,
-                        disabledContentColor= MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(stringResource(R.string.submit))
+                if (isSubmitting) {
+                    LoadingIndicator()
                 }
-
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(id = R.string.close)
+                    )
+                }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = stringResource(R.string.submit_your_entry), style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    BasicTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            .padding(8.dp)
+                            .heightIn(min = 100.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(stringResource(R.string.media_files))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ImageGrid(mediaUris, context, cameraLauncher, permissionLauncher, onImageCapture = { uri ->
+                        photoUri = uri
+                    })
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            setSubmitting(true)
+                            handleSubmission(context, challengeId, description, mediaUris, onDismiss, localLanguage, localLanguageCode,
+                                    onSuccess = {
+                                        setSubmitting(false)
+                                        onSubmissionComplete(true)
+                                onDismiss()
+                            },
+                                onError = {
+                                    setSubmitting(false)
+                                    onSubmissionComplete(false)
+                                }
+                            )
+                        },
+                        enabled = description.isNotEmpty() && mediaUris.isNotEmpty(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor= MaterialTheme.colorScheme.tertiary,
+                            contentColor= MaterialTheme.colorScheme.onTertiary,
+                            disabledContainerColor= PurpleGrey40,
+                            disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(stringResource(R.string.submit))
+                    }
+                }
             }
         }
-            }
     }
 }
 
@@ -627,6 +629,7 @@ fun ImageGrid(
     permissionLauncher: ActivityResultLauncher<String>,
     onImageCapture: (Uri?) -> Unit
 ) {
+    // Composable to display a grid of images and an option to capture a new photo.
     val maxImages = 4
     val gridItems = (mediaUris + List(maxImages - mediaUris.size) { null }).take(maxImages)
 
@@ -647,7 +650,6 @@ fun ImageGrid(
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize()
                             )
-                            Log.d("ImageGrid", "Displaying image URI: $uri")
                         } else {
                             IconButton(onClick = {
                                 if (context.checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -682,8 +684,8 @@ fun handleSubmission(
     localLanguageCode: String,
     onSuccess: () -> Unit,
     onError: () -> Unit,
-
 ) {
+    // Function to handle the process of uploading media files and submitting challenge entry.
     val storage = FirebaseStorage.getInstance()
     val db = FirebaseFirestore.getInstance()
     val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -712,8 +714,6 @@ fun handleSubmission(
         db.collection("challenge_entries")
             .add(entryData)
             .addOnSuccessListener {
-                Log.d("Firestore", "Entry added successfully")
-
                 onSuccess()
                 onDismiss()
             }
@@ -727,9 +727,13 @@ fun handleSubmission(
     }
 }
 
-
 @Composable
-fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageCode: String) {
+fun ViewMyEntryDialog(
+    challengeId: String,
+    onDismiss: () -> Unit,
+    localLanguageCode: String
+) {
+    // Composable dialog to view the user's own challenge entry including description, images, and scores.
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val mAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -743,6 +747,7 @@ fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageC
     var criteriaMap by remember { mutableStateOf<Map<String, String>?>(null) }
     var criteriaEnglishToLocal by remember { mutableStateOf<Map<String, String>?>(null) }
 
+    // Load challenge entry data from Firestore.
     LaunchedEffect(Unit) {
         userId?.let {
             db.collection("challenge_entries")
@@ -787,6 +792,7 @@ fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageC
         }
     }
 
+    // Display the dialog with the entry details.
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -795,7 +801,6 @@ fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageC
                 .fillMaxWidth(0.9f)
                 .fillMaxHeight(0.9f)
         ) {
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -852,7 +857,6 @@ fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageC
                             Spacer(modifier = Modifier.height(16.dp))
 
                             if (scores != null && summary != null) {
-//
                                 Text(
                                     text = stringResource(R.string.scores),
                                     style = MaterialTheme.typography.bodyMedium
@@ -883,7 +887,7 @@ fun ViewMyEntryDialog(challengeId: String, onDismiss: () -> Unit, localLanguageC
                                             )
                                             Box(
                                                 modifier = Modifier
-                                                    .size(40.dp) // Make this size square
+                                                    .size(40.dp)
                                                     .background(MaterialTheme.colorScheme.primary)
                                                     .padding(8.dp),
                                                 contentAlignment = Alignment.Center
@@ -944,8 +948,9 @@ fun ImageGrid(
     permissionLauncher: ActivityResultLauncher<String>? = null,
     onImageCapture: (Uri?) -> Unit = {}
 ) {
+    // Composable to display a grid of images with an option to add more if space permits.
     val maxImages = 4
-    val gridItems = mediaUris.take(maxImages) // Take only the available images, up to the maximum limit
+    val gridItems = mediaUris.take(maxImages) // Display only up to the maximum allowed images
 
     Column {
         for (row in gridItems.chunked(2)) {
@@ -968,7 +973,7 @@ fun ImageGrid(
             }
         }
 
-        // Display add photo button if there is space for more images
+        // Show add photo button if there is space for more images
         if (mediaUris.size < maxImages && cameraLauncher != null && permissionLauncher != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Row {
@@ -1000,20 +1005,19 @@ fun ImageGrid(
     }
 }
 
-
 private fun dispatchTakePictureIntent(context: Context, cameraLauncher: ActivityResultLauncher<Intent>, uri: Uri?) {
+    // Function to start the camera intent for taking a picture.
     val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
     try {
         cameraLauncher.launch(takePictureIntent)
-        Log.d("DispatchIntent", "Camera intent launched")
     } catch (e: ActivityNotFoundException) {
-        // display error state to the user
-        Log.e("DispatchIntent", "Camera app not found", e)
+        // Handle the case where no camera app is available.
     }
 }
 
 private fun createImageFileUri(context: Context): Uri? {
+    // Function to create a URI for a new image file.
     val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
     val storageDir = context.externalCacheDir // Use the external cache directory
     val imageFile = File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)

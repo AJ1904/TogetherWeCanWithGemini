@@ -48,7 +48,6 @@ import com.google.android.libraries.places.api.net.SearchByTextRequest
 import com.google.android.libraries.places.api.net.SearchByTextResponse
 import kotlin.math.cos
 
-
 class PlaceSearchActivity : ComponentActivity() {
 
     private lateinit var placesClient: PlacesClient
@@ -57,24 +56,27 @@ class PlaceSearchActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Setup edge-to-edge display and initialize location client
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Initialize the Places client
+        // Initialize the Places client with API key
         val placesApiKey = BuildConfig.PLACES_API_KEY
-       // Places.initialize(applicationContext, placesApiKey)
         Places.initializeWithNewPlacesApiEnabled(applicationContext, placesApiKey)
         placesClient = Places.createClient(this)
 
+        // Retrieve the search query from the intent
         val query = intent.getStringExtra("query") ?: ""
-        Log.d("intent get string",query)
+        Log.d("intent get string", query)
 
         setContent {
+            // State to manage places list and permission status
             var places by remember { mutableStateOf<List<Place>>(emptyList()) }
             var permissionDenied by remember { mutableStateOf(false) }
 
             LaunchedEffect(query) {
+                // Check for location permission and fetch location if granted
                 if (LocationUtils.hasLocationPermission(this@PlaceSearchActivity)) {
                     getCurrentLocation { location ->
                         searchPlaces(query, location) { results ->
@@ -86,6 +88,7 @@ class PlaceSearchActivity : ComponentActivity() {
                 }
             }
 
+            // Display appropriate screen based on permission status
             if (permissionDenied) {
                 PermissionDeniedScreen()
             } else {
@@ -104,6 +107,7 @@ class PlaceSearchActivity : ComponentActivity() {
     }
 
     private fun getCurrentLocation(callback: (LatLng) -> Unit) {
+        // Request location permission if not already granted
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -115,6 +119,7 @@ class PlaceSearchActivity : ComponentActivity() {
             LocationUtils.requestLocationPermission(this)
             return
         }
+        // Fetch the last known location
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location ->
                 location?.let {
@@ -127,40 +132,37 @@ class PlaceSearchActivity : ComponentActivity() {
             }
     }
 
-private fun searchPlaces(query: String, location: LatLng, callback: (List<Place>) -> Unit) {
-    if (!LocationUtils.hasLocationPermission(this)) {
-        LocationUtils.requestLocationPermission(this)
-        return
+    private fun searchPlaces(query: String, location: LatLng, callback: (List<Place>) -> Unit) {
+        // Request location permission if not already granted
+        if (!LocationUtils.hasLocationPermission(this)) {
+            LocationUtils.requestLocationPermission(this)
+            return
+        }
+
+        Log.d("Places line 105", query)
+        val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)
+        val radius = 100000.0 // Radius in meters
+
+        // Calculate search bounds based on location and radius
+        val bounds = calculateBounds(location, radius)
+
+        // Build and execute the place search request
+        val searchByTextRequest = SearchByTextRequest.builder(query, placeFields)
+            .setMaxResultCount(10)
+            .setLocationRestriction(bounds)
+            .build()
+
+        placesClient.searchByText(searchByTextRequest)
+            .addOnSuccessListener { response: SearchByTextResponse ->
+                val places = response.places
+                Log.d("places:", places.toString())
+                callback(places)
+            }
+            .addOnFailureListener { exception ->
+                Log.e("PlaceSearch", "Place search failed", exception)
+                callback(emptyList())
+            }
     }
-
-    Log.d("Places line 105", query)
-    val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)
-//    val center = location
-//    val circle = CircularBounds.newInstance(center, 1000.0) // Radius in meters
-    val radius = 100000.0 // Radius in meters
-
-    val bounds = calculateBounds(location, radius)
-
-//    val searchByTextRequest = SearchByTextRequest.builder(query, placeFields)
-//        .setMaxResultCount(10)
-//        .setLocationRestriction(circle)
-//        .build()
-    val searchByTextRequest = SearchByTextRequest.builder(query, placeFields)
-        .setMaxResultCount(10)
-        .setLocationRestriction(bounds)
-        .build()
-
-    placesClient.searchByText(searchByTextRequest)
-        .addOnSuccessListener { response: SearchByTextResponse ->
-            val places = response.places
-            Log.d("places:", places.toString())
-            callback(places)
-        }
-        .addOnFailureListener { exception ->
-            Log.e("PlaceSearch", "Place search failed", exception)
-            callback(emptyList())
-        }
-}
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -183,46 +185,47 @@ private fun searchPlaces(query: String, location: LatLng, callback: (List<Place>
         }
     }
 
-private fun calculateBounds(center: LatLng, radius: Double): RectangularBounds {
-    val radiusInDegrees = radius / 111000.0 // Convert radius from meters to degrees
+    private fun calculateBounds(center: LatLng, radius: Double): RectangularBounds {
+        // Calculate the search bounds based on radius and center location
+        val radiusInDegrees = radius / 111000.0 // Convert radius from meters to degrees
 
-    val lat = center.latitude
-    val lng = center.longitude
+        val lat = center.latitude
+        val lng = center.longitude
 
-    val southwestLat = lat - radiusInDegrees
-    val southwestLng = lng - radiusInDegrees / cos(lat.toRadians())
+        val southwestLat = lat - radiusInDegrees
+        val southwestLng = lng - radiusInDegrees / cos(lat.toRadians())
 
-    val northeastLat = lat + radiusInDegrees
-    val northeastLng = lng + radiusInDegrees / cos(lat.toRadians())
+        val northeastLat = lat + radiusInDegrees
+        val northeastLng = lng + radiusInDegrees / cos(lat.toRadians())
 
-    val southwest = LatLng(southwestLat, southwestLng)
-    val northeast = LatLng(northeastLat, northeastLng)
+        val southwest = LatLng(southwestLat, southwestLng)
+        val northeast = LatLng(northeastLat, northeastLng)
 
-    return RectangularBounds.newInstance(southwest, northeast)
-}
+        return RectangularBounds.newInstance(southwest, northeast)
+    }
 
     private fun Double.toRadians() = Math.toRadians(this)
     private fun Double.toDegrees() = Math.toDegrees(this)
 
-private fun openPlaceInGoogleMaps(place: Place) {
-    place.latLng?.let { latLng ->
-        val gmmIntentUri = Uri.parse("geo:${latLng.latitude},${latLng.longitude}?q=${latLng.latitude},${latLng.longitude}(${place.name})")
-        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-        mapIntent.setPackage("com.google.android.apps.maps")
-        startActivity(mapIntent)
+    private fun openPlaceInGoogleMaps(place: Place) {
+        place.latLng?.let { latLng ->
+            val gmmIntentUri = Uri.parse("geo:${latLng.latitude},${latLng.longitude}?q=${latLng.latitude},${latLng.longitude}(${place.name})")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            startActivity(mapIntent)
+        }
     }
-}
-
 }
 
 @Composable
 fun PlaceSearchScreen(places: List<Place>, onPlaceClick: (Place) -> Unit, onOpenInMapsClick: (Place) -> Unit) {
+    // Display a list of places with options to click for details or open in Google Maps
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(16.dp)
         .systemBarsPadding()
     ) {
-        item {HorizontalDivider()}
+        item { HorizontalDivider() }
         items(places) { place ->
             Column(
                 modifier = Modifier
@@ -230,6 +233,7 @@ fun PlaceSearchScreen(places: List<Place>, onPlaceClick: (Place) -> Unit, onOpen
                     .clickable { onPlaceClick(place) }
                     .padding(8.dp)
             ) {
+                // Display place details and action buttons
                 Text(text = place.name ?: "", style = MaterialTheme.typography.bodyLarge)
                 Text(text = place.address ?: "", style = MaterialTheme.typography.bodyMedium)
                 Button(
@@ -240,8 +244,6 @@ fun PlaceSearchScreen(places: List<Place>, onPlaceClick: (Place) -> Unit, onOpen
                     Text(text = stringResource(R.string.open_in_google_maps))
                 }
                 HorizontalDivider()
-
-
             }
         }
     }
@@ -249,6 +251,7 @@ fun PlaceSearchScreen(places: List<Place>, onPlaceClick: (Place) -> Unit, onOpen
 
 @Composable
 fun PermissionDeniedScreen() {
+    // Display a screen indicating that location permission is required
     Box(
         modifier = Modifier
             .fillMaxSize()

@@ -6,6 +6,7 @@ import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.viewinterop.AndroidView
 
+// Composable to display a WebView with the specified URL
 @Composable
 fun WebViewPage(url: String) {
     AndroidView(factory = { context ->
@@ -14,7 +15,7 @@ fun WebViewPage(url: String) {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
-            settings.javaScriptEnabled = true  // Enable JavaScript
+            settings.javaScriptEnabled = true
             webViewClient = WebViewClient()
             loadUrl(url)
         }

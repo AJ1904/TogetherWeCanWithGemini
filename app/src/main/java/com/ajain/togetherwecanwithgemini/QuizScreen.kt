@@ -27,11 +27,13 @@ fun QuizScreen(
     onEndQuiz: () -> Unit
 ) {
     question?.let {
+        // State variables to manage the selected option, correctness, button colors, and hint
         var selectedOption by remember { mutableStateOf<String?>(null) }
         var correctAnswered by remember { mutableStateOf(false) }
         var optionColors by remember { mutableStateOf(it.options.associateWith { Blue64 }) }
         var currentHint by remember { mutableStateOf<String?>(null) }
 
+        // Main column to display the quiz question and options
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -39,12 +41,13 @@ fun QuizScreen(
                 .verticalScroll(rememberScrollState())
                 .systemBarsPadding()
         ) {
+            // Display the quiz question
             Text(text = it.question,
                 style = MaterialTheme.typography.headlineMedium,
-              //  modifier = Modifier.padding(8.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Display each option as a button
             it.options.forEachIndexed { index, option ->
                 val color = optionColors[option] ?: Blue64
                 val enabled = true
@@ -52,10 +55,12 @@ fun QuizScreen(
                 Button(
                     onClick = {
                         if (enabled) {
+                            // Handle option selection and update state
                             selectedOption = option
                             correctAnswered = (option == it.correctOption)
                             currentHint = it.hints.getOrNull(index)
 
+                            // Update button colors based on selection and correctness
                             optionColors = it.options.associateWith { opt ->
                                 when {
                                     opt == it.correctOption && opt == selectedOption -> Orange40
@@ -74,9 +79,8 @@ fun QuizScreen(
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        // horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-
+                        // Display the option text and check icon if selected
                         Text(text = option,
                             style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.fillMaxWidth(0.9f).padding(8.dp))
@@ -93,9 +97,11 @@ fun QuizScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Buttons to proceed to the next question or end the quiz
             Row {
                 Button(
                     onClick = {
+                        // Reset state and move to the next question
                         optionColors = it.options.associateWith { Blue64 }
                         selectedOption = null
                         correctAnswered = false
@@ -117,6 +123,8 @@ fun QuizScreen(
                     Text(text = stringResource(R.string.end_quiz))
                 }
             }
+            
+            // Display the hint if available
             currentHint?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = it, style = MaterialTheme.typography.bodyLarge)
@@ -124,6 +132,7 @@ fun QuizScreen(
             }
         }
     } ?: run {
+        // Show a loading indicator if no question is available
         LoadingIndicator()
     }
 }

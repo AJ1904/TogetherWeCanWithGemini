@@ -14,35 +14,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+
+// Converts a Markdown string to HTML format
 fun markdownToHtml(markdown: String): String {
+    // Create a Markdown parser and renderer
     val parser = Parser.builder().build()
     val document = parser.parse(markdown)
     val renderer = HtmlRenderer.builder().build()
+
+    // Render the parsed Markdown document to HTML
     var html = renderer.render(document)
 
-  //  Log.d("22",html)
-    // Replace Markdown-style newlines with <br> tags
+    // Replace Markdown-style newlines with <br> tags for proper line breaks in HTML
     html = html.replace("\n", "<br>")
-    //Log.d("25",html)
 
     return html
 }
 
-
-//fun markdownToHtml(markdown: String): String {
-//    val parser = Parser.builder().build()
-//    val document = parser.parse(markdown)
-//    val renderer = HtmlRenderer.builder().build()
-//    val html = renderer.render(document).replace("\n", "<br>")
-//    return html
-//    //return renderer.render(document)
-//}
-
+// Composable function to display HTML content in a WebView
 @Composable
 fun HtmlTextView(htmlText: String) {
+    // Extract primary and on-primary colors from the MaterialTheme
     val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary.toArgb()
 
+    // Create a styled HTML string with background and text colors
     val styledHtml = """
         <html>
             <body style="background-color:${Integer.toHexString(primaryColor).drop(2)};color:${Integer.toHexString(onPrimaryColor).drop(2)};">
@@ -50,20 +46,25 @@ fun HtmlTextView(htmlText: String) {
             </body>
         </html>
     """.trimIndent()
-Log.d("",styledHtml)
+    
+    // Log the generated HTML for debugging purposes
+    Log.d("", styledHtml)
+
+    // Create and configure a WebView to display the HTML content
     AndroidView(
-        modifier = Modifier.fillMaxSize(), // Ensure it takes up space
+        modifier = Modifier.fillMaxSize(), // Ensure the WebView takes up the available space
         factory = { context ->
             WebView(context).apply {
                 settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    setSupportZoom(false)
+                    javaScriptEnabled = true // Enable JavaScript for dynamic content
+                    domStorageEnabled = true // Enable DOM storage for storing data locally
+                    setSupportZoom(false) // Disable zooming functionality
                 }
-                loadData(styledHtml, "text/html", "UTF-8")
+                loadData(styledHtml, "text/html", "UTF-8") // Load the styled HTML content
             }
         },
         update = { webView ->
+            // Update the WebView content if needed
             webView.loadData(styledHtml, "text/html", "UTF-8")
         }
     )

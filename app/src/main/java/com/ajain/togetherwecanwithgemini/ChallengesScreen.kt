@@ -42,16 +42,16 @@ import com.ajain.togetherwecanwithgemini.utils.loadSDGs
 import com.ajain.togetherwecanwithgemini.viewmodels.ChallengesViewModel
 import com.ajain.togetherwecanwithgemini.viewmodels.MainViewModel
 
-
 @Composable
 fun ChallengesScreen(
     viewModel: ChallengesViewModel, navController: NavController
 ) {
+    // Displays the list of challenges with a header and a scrollable list of challenge items.
     val challengesState = viewModel.challenges.collectAsState()
     val challenges = challengesState.value
     val localLanguageCode = viewModel.getLocaleLanguageCode()
     Box(
-        modifier = Modifier.fillMaxSize().systemBarsPadding() ,
+        modifier = Modifier.fillMaxSize().systemBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -74,6 +74,7 @@ fun ChallengesScreen(
 
 @Composable
 fun ChallengeItem(challenge: Challenge, navController: NavController, localLanguageCode: String) {
+    // Displays a single challenge item with a clickable row that navigates to the challenge details.
     val context = LocalContext.current
     val sdgs = remember { loadSDGs(context) }
     val sdgNumber = challenge.sdg.substringAfter("SDG ").substringBefore(":").toIntOrNull()
@@ -90,19 +91,19 @@ fun ChallengeItem(challenge: Challenge, navController: NavController, localLangu
             .clickable { navController.navigate("challenge_detail/${challenge.id}") }
             .padding(16.dp)
     ) {
-        // Column to hold the title and image
+        // Column to hold the title and SDG image
         Column(
             modifier = Modifier
                 .weight(1f)
                 .padding(end = 8.dp)
         ) {
-            // Row to align the title and image
+            // Row to align the title and SDG image
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.Start)
             ) {
-                // Title
+                // Challenge Title
                 Text(
                     text = challenge.title,
                     style = MaterialTheme.typography.bodyLarge,
@@ -138,7 +139,6 @@ fun ChallengeItem(challenge: Challenge, navController: NavController, localLangu
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
-                        //.fillMaxWidth()
                         .padding(top = 4.dp)
                         .align(Alignment.End)
                 )
@@ -146,4 +146,3 @@ fun ChallengeItem(challenge: Challenge, navController: NavController, localLangu
         }
     }
 }
-

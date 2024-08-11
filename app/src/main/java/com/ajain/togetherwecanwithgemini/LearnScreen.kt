@@ -66,13 +66,15 @@ import java.nio.charset.StandardCharsets
 
 @Composable
 fun LearnScreen(navController: androidx.navigation.NavController, modifier: Modifier = Modifier) {
+    // Displays a screen with SDG cards that navigate to detailed SDG views.
     val context = LocalContext.current
-    val sdgs = remember { loadSDGs(context) }
-    SDGCardView(sdgs = sdgs, navController = navController, modifier = modifier)
+    val sdgs = remember { loadSDGs(context) } // Load SDGs data
+    SDGCardView(sdgs = sdgs, navController = navController, modifier = modifier) // Render SDG cards
 }
 
 @Composable
 fun SDGCardView(sdgs: List<SDG>, navController: androidx.navigation.NavController, modifier: Modifier = Modifier) {
+    // Displays SDG cards in a grid layout. Each card navigates to the SDG detail screen on click.
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 128.dp),
         modifier = modifier.fillMaxSize(),
@@ -84,35 +86,20 @@ fun SDGCardView(sdgs: List<SDG>, navController: androidx.navigation.NavControlle
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    //.fillMaxHeight()
                     .clickable {
+                        // Navigate to SDG detail screen with encoded parameters
                         val gson = Gson()
-                        val encodedName = URLEncoder
-                            .encode(gson.toJson(sdg.name), StandardCharsets.UTF_8.toString())
-                            .replace("+", "%20")
-                        val encodedDescription = URLEncoder
-                            .encode(gson.toJson(sdg.description), StandardCharsets.UTF_8.toString())
-                            .replace("+", "%20")
-                        val encodedSdgUrl = URLEncoder
-                            .encode(sdg.sdgUrl, StandardCharsets.UTF_8.toString())
-                            .replace("+", "%20")
+                        val encodedName = URLEncoder.encode(gson.toJson(sdg.name), StandardCharsets.UTF_8.toString()).replace("+", "%20")
+                        val encodedDescription = URLEncoder.encode(gson.toJson(sdg.description), StandardCharsets.UTF_8.toString()).replace("+", "%20")
+                        val encodedSdgUrl = URLEncoder.encode(sdg.sdgUrl, StandardCharsets.UTF_8.toString()).replace("+", "%20")
 
-                        // Navigate to the detail screen
-                        navController.navigate(
-                            "sdg_detail/$encodedName/$encodedDescription/${sdg.index}/${sdg.imageName}/$encodedSdgUrl"
-                        )
+                        navController.navigate("sdg_detail/$encodedName/$encodedDescription/${sdg.index}/${sdg.imageName}/$encodedSdgUrl")
                     }
             ) {
                 Image(
-                    painter = painterResource(
-                        id = LocalContext.current.resources.getIdentifier(
-                            sdg.imageName, "drawable", LocalContext.current.packageName
-                        )
-                    ),
+                    painter = painterResource(id = LocalContext.current.resources.getIdentifier(sdg.imageName, "drawable", LocalContext.current.packageName)),
                     contentDescription = sdg.name["en"],
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)
+                    modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
                 )
             }
         }
@@ -120,61 +107,46 @@ fun SDGCardView(sdgs: List<SDG>, navController: androidx.navigation.NavControlle
 }
 
 
-
 @Composable
 fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
+    // Displays detailed information and actions related to a specific SDG, including tasks and quizzes.
     val uiState by sdgViewModel.uiState.collectAsState()
     val sdgDetails by sdgViewModel.sdgDetails.collectAsState()
     val context = LocalContext.current
     var tasks by remember { mutableStateOf<Tasks?>(null) }
     var buttonEnabled by remember { mutableStateOf(true) }
-  //  var buttonText by remember { mutableStateOf("Get Actions") }
-
-    // Separate expanded task indices for each level
     var expandedEasyTaskIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var expandedMediumTaskIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     var expandedHardTaskIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-
     val uiStateQuiz by sdgViewModel.uiStateQuiz.collectAsState()
     val quizQuestions by sdgViewModel.quizQuestions.observeAsState(emptyList())
     var currentQuestionIndex by remember { mutableStateOf(0) }
     var showQuiz by remember { mutableStateOf(false) }
-
-    // State for showing dialog
     var showSourceDialog by remember { mutableStateOf(false) }
-
     var showTasksDialog by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-
     val localLanguageCode = sdgViewModel.getLocaleLanguageCode()
-
-    // Retrieve tasks from ViewModel if already generated
     tasks = sdgViewModel.tasks
 
     LaunchedEffect(sdg.index) {
         sdgViewModel.getSDGDetails(sdg.index)
     }
 
+    // Handle quiz state changes
     LaunchedEffect(uiStateQuiz) {
         when (uiStateQuiz) {
             is UiState.Loading -> {
-                // Show loading indicator
                 loading = true
                 errorMessage = null
-                //CircularProgressIndicator()
             }
 
             is UiState.Error -> {
-                // Show error message
-                // Text(text = "Error: ${(uiStateQuiz as UiState.Error).errorMessage}")
                 loading = false
                 errorMessage = (uiStateQuiz as UiState.Error).errorMessage
             }
 
             is UiState.Success -> {
-//                showQuiz = true
                 loading = false
                 errorMessage = null
                 showQuiz = true
@@ -182,7 +154,6 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
             }
 
             else -> {
-                // Initial or other state
                 loading = false
                 errorMessage = null
             }
@@ -196,7 +167,6 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
                 if (currentQuestionIndex < (quizQuestions?.size ?: 0) - 1) {
                     currentQuestionIndex++
                 } else {
-                    // Handle end of quiz logic here
                     showQuiz = false
                 }
             },
@@ -206,82 +176,64 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
         )
     } else {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .systemBarsPadding()
+            modifier = Modifier.fillMaxSize().padding(16.dp).systemBarsPadding()
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Row {
                 Image(
-                    painter = painterResource(
-                        id = context.resources.getIdentifier(
-                            sdg.imageName, "drawable", context.packageName
-                        )
-                    ),
+                    painter = painterResource(id = context.resources.getIdentifier(sdg.imageName, "drawable", context.packageName)),
                     contentDescription = sdg.name[localLanguageCode] ?: sdg.name["en"],
                     modifier = Modifier.fillMaxWidth(0.4f)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-
-               //     Spacer(modifier = Modifier.height(4.dp))
-                    //Row {
-                        Button(
-                            onClick = {
-                                buttonEnabled = false
-                                showTasksDialog = true
-                                sdg.name["en"]?.let { sdgViewModel.getActionsForSDG(it, ) }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor= MaterialTheme.colorScheme.secondary,
-                                contentColor= MaterialTheme.colorScheme.onSecondary,
-                                disabledContainerColor= MaterialTheme.colorScheme.primary,
-                                disabledContentColor= MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            enabled = buttonEnabled,
-
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = stringResource(R.string.get_actions))
-                        }
-                       // Spacer(modifier = Modifier.width(8.dp))
-                    Spacer(modifier = Modifier.height(4.dp))
-                        Button(onClick = {
-                            sdgViewModel.generateQuizQuestion(sdg)
-                            showQuiz = true
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            buttonEnabled = false
+                            showTasksDialog = true
+                            sdg.name["en"]?.let { sdgViewModel.getActionsForSDG(it) }
                         },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor= MaterialTheme.colorScheme.secondary,
-                                contentColor= MaterialTheme.colorScheme.onSecondary,
-                                disabledContainerColor= MaterialTheme.colorScheme.primary,
-                                disabledContentColor= MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()) {
-                            Text(text = stringResource(R.string.quiz))
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-
-
-                    //}
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = buttonEnabled,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(R.string.get_actions))
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Button(onClick = {
-                        showSourceDialog = true  // Show the dialog
+                        sdgViewModel.generateQuizQuestion(sdg)
+                        showQuiz = true
                     },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor= MaterialTheme.colorScheme.secondary,
-                            contentColor= MaterialTheme.colorScheme.onSecondary,
-                            disabledContainerColor= MaterialTheme.colorScheme.primary,
-                            disabledContentColor= MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()) {
+                        Text(text = stringResource(R.string.quiz))
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Button(onClick = {
+                        showSourceDialog = true
+                    },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary,
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()) {
                         Text(text = stringResource(R.string.source_un))
                     }
-
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -295,22 +247,14 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
-            // Carousel below the description
             if (sdgDetails.isNotEmpty()) {
-                Carousel(details = sdgDetails,
-                    modifier = Modifier
-                        .fillMaxHeight(0.9f)
-                        //.fillMaxWidth()
-                    ,
+                Carousel(
+                    details = sdgDetails,
+                    modifier = Modifier.fillMaxHeight(0.9f),
                     localLanguageCode = sdgViewModel.getLocaleLanguageCode()
                 )
-            } //else {
-               // Text("No details available", style = MaterialTheme.typography.bodyMedium)
-            //}
-
+            }
             Spacer(modifier = Modifier.height(16.dp))
-
-
         }
     }
 
@@ -321,10 +265,8 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
         ) {
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .fillMaxHeight(0.9f),
-                        color = MaterialTheme.colorScheme.background
+                modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.9f),
+                color = MaterialTheme.colorScheme.background
             ) {
                 Box {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -343,9 +285,7 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
                     }
                     IconButton(
                         onClick = { showSourceDialog = false },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(0.dp)
+                        modifier = Modifier.align(Alignment.TopEnd).padding(0.dp)
                     ) {
                         Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close))
                     }
@@ -353,96 +293,88 @@ fun SDGDetailScreen(sdg: SDG, sdgViewModel: SDGViewModel = viewModel()) {
             }
         }
     }
-        if (showTasksDialog) {
-            Dialog(
-                properties = DialogProperties(usePlatformDefaultWidth = false),
-                onDismissRequest = { showTasksDialog = false }
+
+    if (showTasksDialog) {
+        Dialog(
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+            onDismissRequest = { showTasksDialog = false }
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.9f),
+                color = MaterialTheme.colorScheme.background
             ) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        //.fillMaxSize()
-                        .fillMaxHeight(0.9f)
-                        //.height(400.dp)
-                        // .background(color = MaterialTheme.colorScheme.background)
-                        .clip(RoundedCornerShape(8.dp)),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    when (uiState) {
-                        is UiState.Loading -> {
-                           // CircularProgressIndicator()
-                            LoadingIndicator()
-                        }
-
-                        is UiState.Success -> {
-                            val json = (uiState as UiState.Success).outputText
-                            try{
-
-                                if (tasks == null) {
-                                    tasks = parseTasks(json)
-                                }
-                            }catch (e: Exception) {
-                                Log.d("LearnScreen","Something went wrong, try again")
-                                AlertDialog(onDismissRequest = { showTasksDialog=false }, confirmButton = { })
-                            }
-                           // buttonText = stringResource(R.string.get_more_actions)
-                            buttonEnabled = true
-                        }
-
-                        is UiState.Error -> {
-                            Text(
-                                text = (uiState as UiState.Error).errorMessage,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            buttonEnabled = true
-                        }
-
-                        else -> {}
+                when (uiState) {
+                    is UiState.Loading -> {
+                        LoadingIndicator() // Show loading indicator
                     }
 
-                    tasks?.let { taskList ->
-                        LazyColumn(modifier = Modifier
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(8.dp))) {
-                            item {
-                                TaskSection(
-                                    stringResource(R.string.easy_tasks),
-                                    taskList.easyTasks,
-                                    MaterialTheme.colorScheme.primary,
-                                    expandedEasyTaskIndex,
-                                    sdg.name["en"]?: ""
-                                ) { index ->
-                                    expandedEasyTaskIndex = index
-                                }
+                    is UiState.Success -> {
+                        val json = (uiState as UiState.Success).outputText
+                        try {
+                            if (tasks == null) {
+                                tasks = parseTasks(json) // Parse and load tasks
                             }
+                        } catch (e: Exception) {
+                            Log.d("LearnScreen", "Something went wrong, try again")
+                            AlertDialog(onDismissRequest = { showTasksDialog = false }, confirmButton = { })
+                        }
+                        buttonEnabled = true
+                    }
 
-                            item {
-                                TaskSection(
-                                    stringResource(R.string.medium_tasks),
-                                    taskList.mediumTasks,
-                                    MaterialTheme.colorScheme.primary,
-                                    expandedMediumTaskIndex,
-                                    sdg.name["en"]?: ""
-                                ) { index ->
-                                    expandedMediumTaskIndex = index
-                                }
+                    is UiState.Error -> {
+                        Text(
+                            text = (uiState as UiState.Error).errorMessage,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        buttonEnabled = true
+                    }
+
+                    else -> {}
+                }
+
+                tasks?.let { taskList ->
+                    LazyColumn(modifier = Modifier
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(8.dp))) {
+                        item {
+                            TaskSection(
+                                stringResource(R.string.easy_tasks),
+                                taskList.easyTasks,
+                                MaterialTheme.colorScheme.primary,
+                                expandedEasyTaskIndex,
+                                sdg.name["en"] ?: ""
+                            ) { index ->
+                                expandedEasyTaskIndex = index
                             }
-                            item {
-                                TaskSection(
-                                    stringResource(R.string.difficult_tasks),
-                                    taskList.difficultTasks,
-                                    MaterialTheme.colorScheme.primary,
-                                    expandedHardTaskIndex,
-                                    sdg.name["en"]?: ""
-                                ) { index ->
-                                    expandedHardTaskIndex = index
-                                }
+                        }
+
+                        item {
+                            TaskSection(
+                                stringResource(R.string.medium_tasks),
+                                taskList.mediumTasks,
+                                MaterialTheme.colorScheme.primary,
+                                expandedMediumTaskIndex,
+                                sdg.name["en"] ?: ""
+                            ) { index ->
+                                expandedMediumTaskIndex = index
+                            }
+                        }
+                        item {
+                            TaskSection(
+                                stringResource(R.string.difficult_tasks),
+                                taskList.difficultTasks,
+                                MaterialTheme.colorScheme.primary,
+                                expandedHardTaskIndex,
+                                sdg.name["en"] ?: ""
+                            ) { index ->
+                                expandedHardTaskIndex = index
                             }
                         }
                     }
                 }
             }
+        }
     }
 }
 
@@ -453,6 +385,7 @@ fun saveGoalToFirebase(
     onSuccess: () -> Unit,
     onFailure: (Exception) -> Unit
 ) {
+    // Saves a goal to Firebase under the current user's document
     val mAuth: FirebaseAuth = FirebaseAuth.getInstance()
     val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
@@ -465,5 +398,3 @@ fun saveGoalToFirebase(
             .addOnFailureListener { onFailure(it) }
     }
 }
-
-

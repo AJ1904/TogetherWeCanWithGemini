@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
+// Displays a loading indicator with a centered message
 @Composable
 fun LoadingIndicator() {
     Box(

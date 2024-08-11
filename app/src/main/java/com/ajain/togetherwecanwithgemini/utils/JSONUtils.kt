@@ -7,6 +7,7 @@ import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.reflec
 import com.google.gson.Gson
 import java.io.InputStreamReader
 
+// Loads a list of SDG (Sustainable Development Goals) objects from a JSON resource file
 fun loadSDGs(context: Context): List<SDG> {
     val inputStream = context.resources.openRawResource(R.raw.sdgs)
     val reader = InputStreamReader(inputStream)

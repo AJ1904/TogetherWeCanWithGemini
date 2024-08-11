@@ -50,30 +50,33 @@ import kotlinx.coroutines.delay
 
 class AuthActivity : ComponentActivity() {
 
-
-private val signInLauncher =
-    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val response = IdpResponse.fromResultIntent(result.data)
-        if (result.resultCode == RESULT_OK) {
-            val user = FirebaseAuth.getInstance().currentUser
-            if (response?.isNewUser == true) {
-                launchUserDetailsActivity()
+    // Activity result launcher for handling sign-in responses
+    private val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val response = IdpResponse.fromResultIntent(result.data)
+            if (result.resultCode == RESULT_OK) {
+                val user = FirebaseAuth.getInstance().currentUser
+                if (response?.isNewUser == true) {
+                    // Launch User Details activity for new users
+                    launchUserDetailsActivity()
+                } else {
+                    // Launch Main activity for existing users
+                    launchMainActivity()
+                }
             } else {
-                launchMainActivity()
+                // Display error message if sign-in fails
+                val errorMessage = response?.error?.localizedMessage ?: "Unknown error"
+                showError(errorMessage)
             }
-        } else {
-            val errorMessage = response?.error?.localizedMessage ?: "Unknown error"
-            showError(errorMessage)
         }
-    }
 
+    // Display error message in ErrorDisplayActivity
     private fun showError(errorMessage: String) {
         val intent = Intent(this, ErrorDisplayActivity::class.java).apply {
             putExtra("error_message", errorMessage)
         }
         startActivity(intent)
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,12 +88,12 @@ private val signInLauncher =
             TogetherWeCanWithGeminiTheme {
                 val user = FirebaseAuth.getInstance().currentUser
                 if (user != null) {
-                    // User is already signed in, launch the main activity
+                    // Launch Main activity if user is already signed in
                     LaunchedEffect(Unit) {
                         launchMainActivity()
                     }
                 } else {
-                    // Show the custom UI with logo, name, and sign-in button
+                    // Display sign-in screen for unauthenticated users
                     SignInScreen(sdgs = sdgs, onSignInClicked = {
                         startSignIn()
                     })
@@ -99,6 +102,7 @@ private val signInLauncher =
         }
     }
 
+    // Start the sign-in process
     private fun startSignIn() {
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build()
@@ -113,13 +117,14 @@ private val signInLauncher =
         signInLauncher.launch(signInIntent)
     }
 
+    // Launch the Main activity
     private fun launchMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-
+    // Launch User Details activity for new users
     private fun launchUserDetailsActivity() {
         val user = FirebaseAuth.getInstance().currentUser
         val firstName = user?.displayName?.split(" ")?.getOrNull(0) ?: ""
@@ -137,8 +142,9 @@ private val signInLauncher =
     }
 }
 
-    @Composable
+@Composable
 fun SmallAnimatedText(textMap: Map<String, String>) {
+    // Manage and cycle through different texts for each language
     val languages = textMap.keys.toList()
     var currentLanguageIndex by remember { mutableStateOf(0) }
     val currentText = textMap[languages[currentLanguageIndex]] ?: textMap["en"] ?: ""
@@ -150,103 +156,57 @@ fun SmallAnimatedText(textMap: Map<String, String>) {
         }
     }
 
+    // Display the animated text with a smaller font size
     Text(
         text = currentText,
         fontSize = 12.sp, // Smaller font size
-       // style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray) // Adjust opacity with color
     )
 }
+
 @Composable
 fun SignInScreen(
     sdgs: List<SDG>,
     onSignInClicked: () -> Unit
 ) {
+    // Display the sign-in screen with background image and sign-in button
     Box(
         modifier = Modifier
             .fillMaxSize()
             .systemBarsPadding()
     ) {
-       //  Background: Animated SDGs
-//        AnimatedSDGs(
-//            sdgs = sdgs,
-//            modifier = Modifier
-//                .fillMaxSize()
-//                //.fillMaxHeight(0.7f)
-//                .padding(16.dp)
-//                .graphicsLayer(alpha = 0.3f)
-//        )
-
-        Box( modifier = Modifier
+        Box(modifier = Modifier
             .fillMaxSize()
-            .systemBarsPadding()){
+            .systemBarsPadding()) {
             Image(
                 painter = painterResource(id = R.drawable.bg_1),
                 contentDescription = "App Logo",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.FillBounds
-
-                //modifier = Modifier.fillMaxHeight().fillMaxWidth()
-
             )
         }
-      //  VideoBackground()
-        // Foreground: Logo, Text, and Button
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(16.dp)
-//                .systemBarsPadding(),
-//            verticalArrangement = Arrangement.Center,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.logo),
-//                contentDescription = "App Logo",
-//                modifier = Modifier.
-//                    fillMaxSize(0.6f)
-//                //size(100.dp)
-//            )
-         //   Spacer(modifier = Modifier.height(16.dp))
-//            Text(
-//                text = "TOGETHER WE CAN WITH GEMINI",
-//                fontSize = 20.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = MaterialTheme.colorScheme.onBackground,
-//              //  fontStyle = MaterialTheme.typography.bodyLarge
-//                //  color = Color.Black
-//            )
-//            Spacer(modifier = Modifier.height(32.dp))
-//            Button(onClick = onSignInClicked,
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor= MaterialTheme.colorScheme.primary,
-//                    contentColor= MaterialTheme.colorScheme.onPrimary,
-//                ),
-//                shape = RoundedCornerShape(8.dp)
-//            ) {
-//                Text(text = "Sign in with Google", fontSize = 18.sp)
-//            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 50.dp)  // Padding to ensure it is not at the very edge
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 50.dp)  // Padding to ensure it is not at the very edge
+        ) {
+            Button(
+                onClick = onSignInClicked,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Button(
-                    onClick = onSignInClicked,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(text = "Sign in with Google", fontSize = 18.sp)
-                }
+                Text(text = "Sign in with Google", fontSize = 18.sp)
             }
         }
-   // }
+    }
 }
 
 @Composable
 fun AnimatedSDGs(sdgs: List<SDG>, modifier: Modifier = Modifier) {
+    // Display each SDG with animated text
     Column(
         modifier = modifier
             .fillMaxHeight(), // Ensure Column takes up full height
@@ -268,6 +228,7 @@ class ErrorDisplayActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
 
+        // Retrieve and display error message
         val errorMessage = intent.getStringExtra("error_message") ?: "An error occurred"
 
         setContent {
@@ -286,5 +247,3 @@ class ErrorDisplayActivity : ComponentActivity() {
         }
     }
 }
-
-
