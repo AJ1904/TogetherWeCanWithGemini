@@ -11,10 +11,10 @@ plugins {
 android {
     signingConfigs {
         create("release") {
-            keyAlias = "ReleaseKey"
-            keyPassword = "omg123?"
-            storePassword = "omg123?"
-            storeFile = file("/Users/ajain/Learning/ANDROID/keystorepath")
+            keyAlias = "YOUR_KEY_ALIAS"
+            keyPassword = "YOUR_KEY_PASSWORD"
+            storePassword = "YOUR_STORE_PASSWORD"
+            storeFile = file("YOUR_STORE_PATH")
         }
     }
     namespace = "com.ajain.togetherwecanwithgemini"
