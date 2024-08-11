@@ -1,0 +1,416 @@
+[
+  {
+    "name": {
+      "en": "SUSTAINABLE DEVELOPMENT GOALS",
+      "hi": "सतत विकास लक्ष्य",
+      "es": "METAS DE DESARROLLO SOSTENIBLE",
+      "fr": "OBJECTIFS DE DÉVELOPPEMENT DURABLE",
+      "zh": "可持续发展目标",
+      "ru": "ЦЕЛИ УСТОЙЧИВОГО РАЗВИТИЯ",
+      "ar": "أهداف التنمية المستدامة"
+    },
+    "description": {
+      "en": "The Sustainable Development Goals are a universal call to action to end poverty, protect the planet and improve the lives and prospects of everyone, everywhere.",
+      "hi": "सतत विकास लक्ष्य गरीबी को समाप्त करने, ग्रह की रक्षा करने तथा हर जगह सभी लोगों के जीवन और संभावनाओं को बेहतर बनाने के लिए कार्रवाई का एक सार्वभौमिक आह्वान है।",
+      "es": "Los Objetivos de Desarrollo Sostenible son un llamado universal a la acción para poner fin a la pobreza, proteger el planeta y mejorar la vida y las perspectivas de todos, en todas partes.",
+      "fr": "Les Objectifs de développement durable sont un appel universel à l’action pour mettre fin à la pauvreté, protéger la planète et améliorer la vie et les perspectives de chacun, partout dans le monde.",
+      "zh": "可持续发展目标是呼吁全世界采取行动，消除贫困、保护地球、改善世界各地每个人的生活和前景。",
+      "ru": "Цели устойчивого развития — это всеобщий призыв к действию, направленный на ликвидацию нищеты, защиту планеты и улучшение жизни и перспектив всех людей во всем мире.",
+      "ar": "إن أهداف التنمية المستدامة تشكل دعوة عالمية للعمل من أجل القضاء على الفقر وحماية الكوكب وتحسين حياة وآفاق الجميع في كل مكان."
+    },
+    "index": 0,
+    "imageName": "sdg_wheel",
+    "sdgUrl": "https://www.un.org/sustainabledevelopment/"
+  },
+  {
+    "name": {
+      "en": "NO POVERTY",
+      "hi": "कोई गरीबी नहीं",
+      "es": "SIN POBREZA",
+      "fr": "PAS DE PAUVRETÉ",
+      "zh": "没有贫困",
+      "ru": "НЕТ БЕДНОСТИ",
+      "ar": "لا للفقر"
+    },
+    "description": {
+      "en": "End poverty in all its forms everywhere",
+      "hi": "हर जगह गरीबी के सभी रूपों को समाप्त करना",
+      "es": "Poner fin a la pobreza en todas sus formas en todo el mundo",
+      "fr": "Mettre fin à la pauvreté sous toutes ses formes et partout dans le monde",
+      "zh": "消除世界各地一切形式的贫困",
+      "ru": "Покончить с нищетой во всех ее формах повсюду",
+      "ar": "القضاء على الفقر بجميع أشكاله في كل مكان"
+    },
+    "index": 1,
+    "imageName": "e_web_goal_01",
+    "sdgUrl": "https://sdgs.un.org/goals/goal1"
+  },
+  {
+    "name": {
+      "en": "ZERO HUNGER",
+      "hi": "शून्य भूख",
+      "es": "HAMBRE CERO",
+      "fr": "FAIM ZÉRO",
+      "zh": "零饥饿",
+      "ru": "НУЛЕВОЙ ГОЛОДА",
+      "ar": "القضاء على الجوع"
+    },
+    "description": {
+      "en": "End hunger, achieve food security and improved nutrition and promote sustainable agriculture",
+      "hi": "भूख समाप्त करें, खाद्य सुरक्षा और बेहतर पोषण प्राप्त करें और सतत कृषि को बढ़ावा दें",
+      "es": "Poner fin al hambre, lograr la seguridad alimentaria y la mejora de la nutrición y promover la agricultura sostenible",
+      "fr": "Éliminer la faim, assurer la sécurité alimentaire, améliorer la nutrition et promouvoir l'agriculture durable",
+      "zh": "消除饥饿、实现粮食安全、改善营养并促进可持续农业",
+      "ru": "Ликвидация голода, достижение продовольственной безопасности и улучшение питания, содействие устойчивому развитию сельского хозяйства.",
+      "ar": "القضاء على الجوع وتحقيق الأمن الغذائي وتحسين التغذية وتعزيز الزراعة المستدامة"
+    },
+    "index": 2,
+    "imageName": "e_web_goal_02",
+    "sdgUrl": "https://sdgs.un.org/goals/goal2"
+  },
+  {
+    "name": {
+      "en": "GOOD HEALTH AND WELL-BEING",
+      "hi": "अच्छा स्वास्थ्य और खुशहाली",
+      "es": "BUENA SALUD Y BIENESTAR",
+      "fr": "BONNE SANTÉ ET BIEN-ÊTRE",
+      "zh": "良好的健康和福祉",
+      "ru": "ХОРОШЕГО ЗДОРОВЬЯ И БЛАГОПОЛУЧИЯ",
+      "ar": "الصحة الجيدة والرفاهية"
+    },
+    "description": {
+      "en": "Ensure healthy lives and promote well-being for all at all ages",
+      "hi": "सभी उम्र के लिए स्वस्थ जीवन सुनिश्चित करें और भलाई को बढ़ावा दें",
+      "es": "Garantizar una vida sana y promover el bienestar de todos en todas las edades.",
+      "fr": "Assurer une vie saine et promouvoir le bien-être de tous à tous les âges",
+      "zh": "确保各年龄段人群健康生活，促进福祉",
+      "ru": "Обеспечение здорового образа жизни и содействие благополучию для всех в любом возрасте",
+      "ar": "ضمان حياة صحية وتعزيز الرفاهية للجميع في جميع الأعمار"
+    },
+    "index": 3,
+    "imageName": "e_web_goal_03",
+    "sdgUrl": "https://sdgs.un.org/goals/goal3"
+  },
+  {
+    "name": {
+      "en": "QUALITY EDUCATION",
+      "hi": "गुणवत्तापूर्ण शिक्षा",
+      "es": "EDUCACIÓN DE CALIDAD",
+      "fr": "ÉDUCATION DE QUALITÉ",
+      "zh": "优质教育",
+      "ru": "КАЧЕСТВО ОБРАЗОВАНИЯ",
+      "ar": "تعليم ذو جودة"
+    },
+    "description": {
+      "en": "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all",
+      "hi": "समावेशी और न्यायसंगत गुणवत्तापूर्ण शिक्षा सुनिश्चित करें और सभी के लिए आजीवन सीखने के अवसरों को बढ़ावा दें",
+      "es": "Garantizar una educación inclusiva, equitativa y de calidad y promover oportunidades de aprendizaje permanente para todos",
+      "fr": "Assurer une éducation de qualité inclusive et équitable et promouvoir les possibilités d'apprentissage tout au long de la vie pour tous",
+      "zh": "确保包容、公平的优质教育，促进全民终身学习机会",
+      "ru": "Обеспечить инклюзивное и справедливое качественное образование и поощрять возможности обучения на протяжении всей жизни для всех",
+      "ar": "ضمان التعليم الجيد الشامل والمنصف وتعزيز فرص التعلم مدى الحياة للجميع"
+    },
+    "index": 4,
+    "imageName": "e_web_goal_04",
+    "sdgUrl": "https://sdgs.un.org/goals/goal4"
+  },
+  {
+    "name": {
+      "en": "GENDER EQUALITY",
+      "hi": "लैंगिक समानता",
+      "es": "IGUALDAD DE GÉNERO",
+      "fr": "ÉGALITÉ DES SEXES",
+      "zh": "性别平等",
+      "ru": "ГЕНДЕРНОЕ РАВЕНСТВО",
+      "ar": "المساواة بين الجنسين"
+    },
+    "description": {
+      "en": "Achieve gender equality and empower all women and girls",
+      "hi": "लैंगिक समानता प्राप्त करें और सभी महिलाओं और लड़कियों को सशक्त बनाएं",
+      "es": "Lograr la igualdad de género y empoderar a todas las mujeres y niñas",
+      "fr": "Atteindre l’égalité des sexes et autonomiser toutes les femmes et les filles",
+      "zh": "实现性别平等并赋予所有妇女和女童权力",
+      "ru": "Достичь гендерного равенства и расширить права и возможности всех женщин и девочек",
+      "ar": "تحقيق المساواة بين الجنسين وتمكين جميع النساء والفتيات"
+    },
+    "index": 5,
+    "imageName": "e_web_goal_05",
+    "sdgUrl": "https://sdgs.un.org/goals/goal5"
+  },
+  {
+    "name": {
+      "en": "CLEAN WATER AND SANITATION",
+      "hi": "स्वच्छ जल और स्वच्छता",
+      "es": "AGUA LIMPIA Y SANEAMIENTO",
+      "fr": "EAU POTABLE ET ASSAINISSEMENT",
+      "zh": "清洁水和卫生设施",
+      "ru": "ЧИСТАЯ ВОДА И САНИТАРИЯ",
+      "ar": "المياه النظيفة والصرف الصحي"
+    },
+    "description": {
+      "en": "Ensure availability and sustainable management of water and sanitation for all",
+      "hi": "सभी के लिए जल और स्वच्छता की उपलब्धता और स्थायी प्रबंधन सुनिश्चित करें",
+      "es": "Garantizar la disponibilidad y la gestión sostenible del agua y el saneamiento para todos",
+      "fr": "Assurer la disponibilité et la gestion durable de l'eau et de l'assainissement pour tous",
+      "zh": "确保为所有人提供水和卫生设施并进行可持续管理",
+      "ru": "Обеспечить доступность и устойчивое управление водоснабжением и санитарией для всех",
+      "ar": "ضمان توافر المياه والصرف الصحي وإدارتها بشكل مستدام للجميع"
+    },
+    "index": 6,
+    "imageName": "e_web_goal_06",
+    "sdgUrl": "https://sdgs.un.org/goals/goal6"
+  },
+  {
+    "name": {
+      "en": "AFFORDABLE AND CLEAN ENERGY",
+      "hi": "सस्ती और स्वच्छ ऊर्जा",
+      "es": "ENERGÍA ASEQUIBLE Y LIMPIA",
+      "fr": "ÉNERGIE ABORDABLE ET PROPRE",
+      "zh": "可负担的清洁能源",
+      "ru": "ДОСТУПНАЯ И ЧИСТАЯ ЭНЕРГИЯ",
+      "ar": "طاقة نظيفة وبأسعار معقولة"
+    },
+    "description": {
+      "en": "Ensure access to affordable, reliable, sustainable and modern energy for all",
+      "hi": "सभी के लिए सस्ती, विश्वसनीय, स्थायी और आधुनिक ऊर्जा तक पहुंच सुनिश्चित करें",
+      "es": "Garantizar el acceso a una energía asequible, fiable, sostenible y moderna para todos",
+      "fr": "Assurer l’accès de tous à une énergie abordable, fiable, durable et moderne",
+      "zh": "确保人人都能获得负担得起、可靠、可持续的现代能源",
+      "ru": "Обеспечить доступ к недорогой, надежной, устойчивой и современной энергии для всех",
+      "ar": "ضمان الوصول إلى الطاقة الحديثة والموثوقة والمستدامة وبأسعار معقولة للجميع"
+    },
+    "index": 7,
+    "imageName": "e_web_goal_07",
+    "sdgUrl": "https://sdgs.un.org/goals/goal7"
+  },
+  {
+    "name": {
+      "en": "DECENT WORK AND ECONOMIC GROWTH",
+      "hi": "उचित कार्य और आर्थिक विकास",
+      "es": "TRABAJO DECENTE Y CRECIMIENTO ECONÓMICO",
+      "fr": "TRAVAIL DÉCENT ET CROISSANCE ÉCONOMIQUE",
+      "zh": "体面工作与经济增长",
+      "ru": "ДОСТОЙНЫЙ ТРУД И ЭКОНОМИЧЕСКИЙ РОСТ",
+      "ar": "العمل اللائق والنمو الاقتصادي"
+    },
+    "description": {
+      "en": "Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all",
+      "hi": "सतत, समावेशी और स्थायी आर्थिक विकास को बढ़ावा दें, सभी के लिए पूर्ण और उत्पादक रोजगार और उचित कार्य सुनिश्चित करें",
+      "es": "Promover el crecimiento económico sostenido, inclusivo y sostenible, el empleo pleno y productivo y el trabajo decente para todos",
+      "fr": "Promouvoir une croissance économique soutenue, inclusive et durable, le plein emploi productif et un travail décent pour tous",
+      "zh": "促进持续、包容和可持续的经济增长，促进充分和生产性就业，让所有人都有体面的工作",
+      "ru": "Содействовать устойчивому, инклюзивному и устойчивому экономическому росту, полной и производительной занятости и достойной работе для всех",
+      "ar": "تعزيز النمو الاقتصادي المستدام والشامل والمستدام، والعمالة الكاملة والمنتجة، والعمل اللائق للجميع"
+    },
+    "index": 8,
+    "imageName": "e_web_goal_08",
+    "sdgUrl": "https://sdgs.un.org/goals/goal8"
+  },
+  {
+    "name": {
+      "en": "INDUSTRY, INNOVATION AND INFRASTRUCTURE",
+      "hi": "उद्योग, नवाचार और बुनियादी ढांचा",
+      "es": "INDUSTRIA, INNOVACIÓN E INFRAESTRUCTURA",
+      "fr": "INDUSTRIE, INNOVATION ET INFRASTRUCTURE",
+      "zh": "工业、创新和基础设施",
+      "ru": "ПРОМЫШЛЕННОСТЬ, ИННОВАЦИИ И ИНФРАСТРУКТУРА",
+      "ar": "الصناعة والابتكار والبنية التحتية"
+    },
+    "description": {
+      "en": "Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation",
+      "hi": "लचीले बुनियादी ढांचे का निर्माण करें, समावेशी और सतत औद्योगीकरण को बढ़ावा दें और नवाचार को प्रोत्साहित करें",
+      "es": "Construir infraestructura resiliente, promover la industrialización inclusiva y sostenible y fomentar la innovación",
+      "fr": "Construire des infrastructures résilientes, promouvoir une industrialisation inclusive et durable et favoriser l'innovation",
+      "zh": "建设具有韧性的基础设施，促进包容和可持续的工业化并推动创新",
+      "ru": "Создание устойчивой инфраструктуры, содействие инклюзивной и устойчивой индустриализации и стимулирование инноваций",
+      "ar": "بناء البنية التحتية المرنة، وتعزيز التصنيع الشامل والمستدام، وتشجيع الابتكار"
+    },
+    "index": 9,
+    "imageName": "e_web_goal_09",
+    "sdgUrl": "https://sdgs.un.org/goals/goal9"
+  },
+  {
+    "name": {
+      "en": "REDUCED INEQUALITIES",
+      "hi": "कम असमानताएँ",
+      "es": "REDUCCIÓN DE LAS DESIGUALDADES",
+      "fr": "RÉDUCTION DES INÉGALITÉS",
+      "zh": "减少不平等",
+      "ru": "СОКРАЩЕНИЕ НЕРАВЕНСТВА",
+      "ar": "الحد من التفاوتات"
+    },
+    "description": {
+      "en": "Reduce inequality within and among countries",
+      "hi": "देशों के भीतर और उनके बीच असमानता को कम करें",
+      "es": "Reducir la desigualdad dentro y entre los países",
+      "fr": "Réduire les inégalités au sein des pays et entre eux",
+      "zh": "减少国家内部和国家之间的不平等",
+      "ru": "Сокращение неравенства внутри стран и между ними",
+      "ar": "الحد من عدم المساواة داخل البلدان وفيما بينها"
+    },
+    "index": 10,
+    "imageName": "e_web_goal_10",
+    "sdgUrl": "https://sdgs.un.org/goals/goal10"
+  },
+  {
+    "name": {
+      "en": "SUSTAINABLE CITIES AND COMMUNITIES",
+      "hi": "सतत शहर और समुदाय",
+      "es": "CIUDADES Y COMUNIDADES SOSTENIBLES",
+      "fr": "VILLES ET COMMUNAUTÉS DURABLES",
+      "zh": "可持续城市和社区",
+      "ru": "УСТОЙЧИВЫЕ ГОРОДА И СООБЩЕСТВА",
+      "ar": "المدن والمجتمعات المستدامة"
+    },
+    "description": {
+      "en": "Make cities and human settlements inclusive, safe, resilient and sustainable",
+      "hi": "शहरों और मानव बस्तियों को समावेशी, सुरक्षित, लचीला और स्थायी बनाएं",
+      "es": "Lograr que las ciudades y los asentamientos humanos sean inclusivos, seguros, resilientes y sostenibles",
+      "fr": "Rendre les villes et les établissements humains inclusifs, sûrs, résilients et durables",
+      "zh": "建设包容、安全、有抵御灾害能力和可持续的城市和人类住区",
+      "ru": "Сделать города и населенные пункты инклюзивными, безопасными, устойчивыми и экологически чистыми",
+      "ar": "جعل المدن والمستوطنات البشرية شاملة وآمنة ومرنة ومستدامة"
+    },
+    "index": 11,
+    "imageName": "e_web_goal_11",
+    "sdgUrl": "https://sdgs.un.org/goals/goal11"
+  },
+  {
+    "name": {
+      "en": "RESPONSIBLE CONSUMPTION AND PRODUCTION",
+      "hi": "जिम्मेदार उपभोग और उत्पादन",
+      "es": "CONSUMO Y PRODUCCIÓN RESPONSABLE",
+      "fr": "CONSOMMATION ET PRODUCTION RESPONSABLES",
+      "zh": "负责任的消费和生产",
+      "ru": "ОТВЕТСТВЕННОЕ ПОТРЕБЛЕНИЕ И ПРОИЗВОДСТВО",
+      "ar": "الاستهلاك والإنتاج المسؤول"
+    },
+    "description": {
+      "en": "Ensure sustainable consumption and production patterns",
+      "hi": "सतत उपभोग और उत्पादन पैटर्न सुनिश्चित करें",
+      "es": "Garantizar modalidades de consumo y producción sostenibles",
+      "fr": "Assurer des modes de consommation et de production durables",
+      "zh": "确保可持续的消费和生产模式",
+      "ru": "Обеспечить устойчивые модели потребления и производства",
+      "ar": "ضمان أنماط الاستهلاك والإنتاج المستدامة"
+    },
+    "index": 12,
+    "imageName": "e_web_goal_12",
+    "sdgUrl": "https://sdgs.un.org/goals/goal12"
+  },
+  {
+    "name": {
+      "en": "CLIMATE ACTION",
+      "hi": "जलवायु कार्रवाई",
+      "es": "ACCIÓN CLIMÁTICA",
+      "fr": "ACTION CLIMATIQUE",
+      "zh": "气候行动",
+      "ru": "ДЕЙСТВИЯ ПО ИЗМЕНЕНИЮ КЛИМАТА",
+      "ar": "العمل المناخي"
+    },
+    "description": {
+      "en": "Take urgent action to combat climate change and its impacts",
+      "hi": "जलवायु परिवर्तन और इसके प्रभावों से निपटने के लिए त्वरित कार्रवाई करें",
+      "es": "Adoptar medidas urgentes para combatir el cambio climático y sus efectos",
+      "fr": "Prendre des mesures urgentes pour lutter contre le changement climatique et ses conséquences",
+      "zh": "采取紧急行动应对气候变化及其影响",
+      "ru": "GПринять срочные меры по борьбе с изменением климата и его последствиями",
+      "ar": "اتخاذ إجراءات عاجلة لمكافحة تغير المناخ وآثاره"
+    },
+    "index": 13,
+    "imageName": "e_web_goal_13",
+    "sdgUrl": "https://sdgs.un.org/goals/goal13"
+  },
+  {
+    "name": {
+      "en": "LIFE BELOW WATER",
+      "hi": "पानी के नीचे जीवन",
+      "es": "VIDA BAJO EL AGUA",
+      "fr": "LA VIE SOUS L'EAU",
+      "zh": "水下生物",
+      "ru": "ЖИЗНЬ ПОД ВОДОЙ",
+      "ar": "الحياة تحت الماء"
+    },
+    "description": {
+      "en": "Conserve and sustainably use the oceans, seas and marine resources for sustainable development",
+      "hi": "समुद्रों, सागरीय संसाधनों को संरक्षित और स्थायी रूप से उपयोग करें",
+      "es": "Conservar y utilizar de forma sostenible los océanos, los mares y los recursos marinos para el desarrollo sostenible",
+      "fr": "Conserver et exploiter durablement les océans, les mers et les ressources marines pour le développement durable",
+      "zh": "保护和可持续利用海洋和海洋资源，实现可持续发展",
+      "ru": "Сохранение и устойчивое использование океанов, морей и морских ресурсов для устойчивого развития",
+      "ar": "الحفاظ على المحيطات والبحار والموارد البحرية واستخدامها بشكل مستدام لتحقيق التنمية المستدامة"
+    },
+    "index": 14,
+    "imageName": "e_web_goal_14",
+    "sdgUrl": "https://sdgs.un.org/goals/goal14"
+  },
+  {
+    "name": {
+      "en": "LIFE ON LAND",
+      "hi": "भूमि पर जीवन",
+      "es": "VIDA EN LA TIERRA",
+      "fr": "LA VIE SUR TERRE",
+      "zh": "陆地上的生命",
+      "ru": "ЖИЗНЬ НА ЗЕМЛЕ",
+      "ar": "الحياة على الأرض"
+    },
+    "description": {
+      "en": "Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss",
+      "hi": "पृथ्वी पारिस्थितिक तंत्र की रक्षा, बहाली और स्थायी उपयोग को बढ़ावा दें, वन प्रबंधन को स्थायी बनाएं, मरुस्थलीकरण से लड़ें, भूमि क्षति को रोकें और जैव विविधता हानि को उलटें",
+      "es": "Proteger, restaurar y promover el uso sostenible de los ecosistemas terrestres, gestionar de forma sostenible los bosques, combatir la desertificación, detener e invertir la degradación de las tierras y detener la pérdida de biodiversidad.",
+      "fr": "Protéger, restaurer et promouvoir l’utilisation durable des écosystèmes terrestres, gérer durablement les forêts, lutter contre la désertification, stopper et inverser la dégradation des terres et mettre un terme à la perte de biodiversité",
+      "zh": "保护、恢复和促进陆地生态系统的可持续利用，可持续管理森林，防治荒漠化，制止和扭转土地退化，遏制生物多样性丧失",
+      "ru": "Защищать, восстанавливать и содействовать устойчивому использованию наземных экосистем, устойчиво управлять лесами, бороться с опустыниванием, останавливать и обращать вспять деградацию земель и останавливать утрату биоразнообразия.",
+      "ar": "حماية النظم البيئية الأرضية واستعادتها وتعزيز الاستخدام المستدام لها، وإدارة الغابات على نحو مستدام، ومكافحة التصحر، ووقف تدهور الأراضي وعكس مساره، ووقف فقدان التنوع البيولوجي"
+    },
+    "index": 15,
+    "imageName": "e_web_goal_15",
+    "sdgUrl": "https://sdgs.un.org/goals/goal15"
+  },
+  {
+    "name": {
+      "en": "PEACE, JUSTICE AND STRONG INSTITUTIONS",
+      "hi": "शांति, न्याय और मजबूत संस्थान",
+      "es": "PAZ, JUSTICIA E INSTITUCIONES FUERTES",
+      "fr": "PAIX, JUSTICE ET INSTITUTIONS FORTES",
+      "zh": "和平、正义和强大机构",
+      "ru": "МИР, СПРАВЕДЛИВОСТЬ И СИЛЬНЫЕ ИНСТИТУТЫ",
+      "ar": "السلام والعدالة والمؤسسات القوية"
+    },
+    "description": {
+      "en": "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels",
+      "hi": "सतत विकास के लिए शांतिपूर्ण और समावेशी समाजों को बढ़ावा दें, सभी के लिए न्याय तक पहुंच सुनिश्चित करें और सभी स्तरों पर प्रभावी, जवाबदेह और समावेशी संस्थान बनाएं",
+      "es": "Promover sociedades pacíficas e inclusivas para el desarrollo sostenible, brindar acceso a la justicia para todos y construir instituciones eficaces, responsables e inclusivas a todos los niveles",
+      "fr": "Promouvoir des sociétés pacifiques et inclusives pour le développement durable, assurer l'accès à la justice pour tous et construire des institutions efficaces, responsables et inclusives à tous les niveaux",
+      "zh": "促进和平包容的社会，实现可持续发展，让所有人都能获得司法公正，在各级建立有效、负责和包容的机构",
+      "ru": "Содействовать построению мирных и инклюзивных обществ в интересах устойчивого развития, обеспечивать доступ к правосудию для всех и создавать эффективные, подотчетные и инклюзивные институты на всех уровнях.",
+      "ar": "تعزيز المجتمعات السلمية والشاملة من أجل التنمية المستدامة، وتوفير الوصول إلى العدالة للجميع وبناء مؤسسات فعالة وخاضعة للمساءلة وشاملة على جميع المستويات"
+    },
+    "index": 16,
+    "imageName": "e_web_goal_16",
+    "sdgUrl": "https://sdgs.un.org/goals/goal16"
+  },
+  {
+    "name": {
+      "en": "PARTNERSHIPS FOR THE GOALS",
+      "hi": "लक्ष्यों के लिए साझेदारियां",
+      "es": "ALIANZAS PARA ALCANZAR LOS OBJETIVOS",
+      "fr": "PARTENARIATS POUR LES OBJECTIFS",
+      "zh": "为实现目标而建立的伙伴关系",
+      "ru": "ПАРТНЕРСТВО ДЛЯ ДОСТИЖЕНИЯ ЦЕЛЕЙ",
+      "ar": "الشراكات لتحقيق الأهداف"
+    },
+    "description": {
+      "en": "Strengthen the means of implementation and revitalize the Global Partnership for Sustainable Development",
+      "hi": "कार्यान्वयन के साधनों को मजबूत करें और सतत विकास के लिए वैश्विक साझेदारी को पुनर्जीवित करें",
+      "es": "Fortalecer los medios de implementación y revitalizar la Alianza Mundial para el Desarrollo Sostenible",
+      "fr": "Renforcer les moyens de mise en œuvre et revitaliser le Partenariat mondial pour le développement durable",
+      "zh": "加强执行手段，重振全球可持续发展伙伴关系",
+      "ru": "Укрепить средства реализации и активизировать Глобальное партнерство в интересах устойчивого развития",
+      "ar": "تعزيز وسائل التنفيذ وتنشيط الشراكة العالمية من أجل التنمية المستدامة"
+    },
+    "index": 17,
+    "imageName": "e_web_goal_17",
+    "sdgUrl": "https://sdgs.un.org/goals/goal17"
+  }
+]
