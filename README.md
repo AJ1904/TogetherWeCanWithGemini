@@ -48,4 +48,6 @@
 - Make sure to replace `YOUR_GOOGLE_CLOUD_SECRET_MANAGER_PATH_FOR_GEMINI_API_KEY` in `functions/index.js` with your Google Cloud Secret Manager path for your Gemini API key.
 - Currently, all Firebase Functions are Gen 1.
 - Scheduling is done in Google Cloud Console.
+- APK file present in https://drive.google.com/file/d/1loZybdCDQicjNvZgJx4Fzi1iV_QhSmX3/view?usp=sharing
+
 
