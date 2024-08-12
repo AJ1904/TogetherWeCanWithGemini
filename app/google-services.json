@@ -52,7 +52,7 @@
       ],
       "api_key": [
         {
-          "current_key": ""
+          "current_key": "GOOGLE_MAPS_API_KEY"
         }
       ],
       "services": {
